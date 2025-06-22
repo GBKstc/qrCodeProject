@@ -1,142 +1,173 @@
-import { DownloadOutlined, PlusOutlined, QrcodeOutlined } from '@ant-design/icons';
+import { PlusOutlined, DownloadOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
   ModalForm,
   PageContainer,
   ProFormText,
-  ProFormTextArea,
+  ProFormDigit,
   ProFormSelect,
   ProTable,
 } from '@ant-design/pro-components';
-import { Button, message, Popconfirm, Modal, Space } from 'antd';
+import { Button, message, Popconfirm, Tag } from 'antd';
 import React, { useRef, useState } from 'react';
 
-type QRCodeItem = {
+type QRCodeBatchItem = {
   id: string;
-  name: string;
-  content: string;
-  type: 'product' | 'equipment' | 'process';
-  status: 'active' | 'inactive';
-  createTime: string;
-  updateTime: string;
+  batchNumber: string;
+  quantity: number;
+  generateTime: string;
+  generateUser: string;
+  status: 'generated' | 'exported' | 'used';
+  accessUrl: string;
 };
 
 const QRCodeManagement: React.FC = () => {
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
-  const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
-  const [previewModalOpen, setPreviewModalOpen] = useState<boolean>(false);
-  const [currentRow, setCurrentRow] = useState<QRCodeItem>();
+  const [exportModalOpen, setExportModalOpen] = useState<boolean>(false);
+  const [currentRecord, setCurrentRecord] = useState<QRCodeBatchItem | undefined>();
   const actionRef = useRef<ActionType>();
 
-  // 模拟数据
-  const mockData: QRCodeItem[] = [
-    {
-      id: '1',
-      name: '产品A二维码',
-      content: 'PRODUCT_A_001',
-      type: 'product',
-      status: 'active',
-      createTime: '2023-12-01 10:00:00',
-      updateTime: '2023-12-01 10:00:00',
-    },
-    {
-      id: '2',
-      name: '设备B二维码',
-      content: 'EQUIPMENT_B_002',
-      type: 'equipment',
-      status: 'active',
-      createTime: '2023-12-01 10:00:00',
-      updateTime: '2023-12-01 10:00:00',
-    },
+  // 模拟设备数据
+  const deviceOptions = [
+    { label: '成型机A', value: 'device_1' },
+    { label: '检测设备B', value: 'device_2' },
+    { label: '运输带C', value: 'device_3' },
+    { label: '包装机D', value: 'device_4' },
+    { label: '焊接机E', value: 'device_5' },
   ];
 
-  const handleGenerateQR = (record: QRCodeItem) => {
-    setCurrentRow(record);
-    setPreviewModalOpen(true);
+  const statusMap = {
+    generated: { text: '已生成', color: 'blue' },
+    exported: { text: '已导出', color: 'green' },
+    used: { text: '已使用', color: 'orange' },
   };
 
-  const handleExportQR = (record: QRCodeItem) => {
-    message.success(`导出二维码: ${record.name}`);
+  const handleCreate = async (values: any) => {
+    try {
+      const batchNumber = `QR${Date.now()}`;
+      console.log('创建二维码批次:', {
+        ...values,
+        batchNumber,
+        generateTime: new Date().toLocaleString(),
+        generateUser: '当前用户', // 实际项目中从用户信息获取
+        status: 'generated',
+      });
+      message.success(`成功生成 ${values.quantity} 个二维码，批次号：${batchNumber}`);
+      handleModalOpen(false);
+      actionRef.current?.reload();
+      return true;
+    } catch (error) {
+      message.error('生成失败，请重试');
+      return false;
+    }
   };
 
-  const columns: ProColumns<QRCodeItem>[] = [
+  const handleExport = async (values: any) => {
+    try {
+      console.log('导出二维码:', {
+        batchId: currentRecord?.id,
+        exportPath: values.exportPath,
+        targetDevice: values.targetDevice,
+      });
+      message.success(`二维码已导出到：${values.exportPath}`);
+      setExportModalOpen(false);
+      setCurrentRecord(undefined);
+      actionRef.current?.reload();
+      return true;
+    } catch (error) {
+      message.error('导出失败，请重试');
+      return false;
+    }
+  };
+
+  const handleDelete = async (record: QRCodeBatchItem) => {
+    try {
+      console.log('删除二维码批次:', record.id);
+      message.success('删除成功');
+      actionRef.current?.reload();
+    } catch (error) {
+      message.error('删除失败，请重试');
+    }
+  };
+
+  const columns: ProColumns<QRCodeBatchItem>[] = [
     {
-      title: '二维码名称',
-      dataIndex: 'name',
-      render: (dom, entity) => {
-        return (
-          <a
-            onClick={() => {
-              setCurrentRow(entity);
-              handleUpdateModalOpen(true);
-            }}
-          >
-            {dom}
-          </a>
-        );
-      },
+      title: '序号',
+      dataIndex: 'index',
+      valueType: 'indexBorder',
+      width: 60,
+      search: false,
     },
     {
-      title: '二维码内容',
-      dataIndex: 'content',
+      title: '二维码批次号',
+      dataIndex: 'batchNumber',
+      copyable: true,
+      ellipsis: true,
+      width: 150,
     },
     {
-      title: '类型',
-      dataIndex: 'type',
-      valueEnum: {
-        product: { text: '产品', status: 'Success' },
-        equipment: { text: '设备', status: 'Processing' },
-        process: { text: '工序', status: 'Warning' },
-      },
+      title: '二维码数量',
+      dataIndex: 'quantity',
+      width: 120,
+      search: false,
+      render: (text) => (
+        <span style={{ fontWeight: 'bold', color: '#1890ff' }}>
+          {text}
+        </span>
+      ),
+    },
+    {
+      title: '生成时间',
+      dataIndex: 'generateTime',
+      valueType: 'dateTime',
+      width: 160,
+      search: false,
+    },
+    {
+      title: '生成人员',
+      dataIndex: 'generateUser',
+      width: 120,
+      search: false,
     },
     {
       title: '状态',
       dataIndex: 'status',
+      width: 100,
+      render: (_, record) => (
+        <Tag color={statusMap[record.status].color}>
+          {statusMap[record.status].text}
+        </Tag>
+      ),
       valueEnum: {
-        active: { text: '启用', status: 'Success' },
-        inactive: { text: '禁用', status: 'Error' },
+        generated: { text: '已生成', status: 'processing' },
+        exported: { text: '已导出', status: 'success' },
+        used: { text: '已使用', status: 'warning' },
       },
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createTime',
-      valueType: 'dateTime',
     },
     {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
+      width: 120,
       render: (_, record) => [
         <a
-          key="generate"
-          onClick={() => handleGenerateQR(record)}
-        >
-          <QrcodeOutlined /> 生成
-        </a>,
-        <a
           key="export"
-          onClick={() => handleExportQR(record)}
+          onClick={() => {
+            setCurrentRecord(record);
+            setExportModalOpen(true);
+          }}
         >
           <DownloadOutlined /> 导出
         </a>,
-        <a
-          key="config"
-          onClick={() => {
-            setCurrentRow(record);
-            handleUpdateModalOpen(true);
-          }}
-        >
-          编辑
-        </a>,
         <Popconfirm
           key="delete"
-          title="确定删除这个二维码吗？"
-          onConfirm={() => {
-            message.success('删除成功');
-            actionRef.current?.reload();
-          }}
+          title="确认删除"
+          description="确定要删除这个二维码批次吗？删除后无法恢复。"
+          onConfirm={() => handleDelete(record)}
+          okText="确认"
+          cancelText="取消"
         >
-          <a>删除</a>
+          <a style={{ color: '#ff4d4f' }}>删除</a>
         </Popconfirm>,
       ],
     },
@@ -144,7 +175,7 @@ const QRCodeManagement: React.FC = () => {
 
   return (
     <PageContainer>
-      <ProTable<QRCodeItem>
+      <ProTable<QRCodeBatchItem>
         headerTitle="二维码管理"
         actionRef={actionRef}
         rowKey="id"
@@ -163,6 +194,45 @@ const QRCodeManagement: React.FC = () => {
           </Button>,
         ]}
         request={async () => {
+          // 模拟数据
+          const mockData: QRCodeBatchItem[] = [
+            {
+              id: '1',
+              batchNumber: 'QR202401001',
+              quantity: 1000,
+              generateTime: '2024-01-01 10:00:00',
+              generateUser: '张三',
+              status: 'exported',
+              accessUrl: 'https://example.com/qr/batch1',
+            },
+            {
+              id: '2',
+              batchNumber: 'QR202401002',
+              quantity: 500,
+              generateTime: '2024-01-02 14:30:00',
+              generateUser: '李四',
+              status: 'generated',
+              accessUrl: 'https://example.com/qr/batch2',
+            },
+            {
+              id: '3',
+              batchNumber: 'QR202401003',
+              quantity: 2000,
+              generateTime: '2024-01-03 09:15:00',
+              generateUser: '王五',
+              status: 'used',
+              accessUrl: 'https://example.com/qr/batch3',
+            },
+            {
+              id: '4',
+              batchNumber: 'QR202401004',
+              quantity: 800,
+              generateTime: '2024-01-04 16:45:00',
+              generateUser: '赵六',
+              status: 'generated',
+              accessUrl: 'https://example.com/qr/batch4',
+            },
+          ];
           return {
             data: mockData,
             success: true,
@@ -170,150 +240,83 @@ const QRCodeManagement: React.FC = () => {
           };
         }}
         columns={columns}
+        pagination={{
+          defaultPageSize: 10,
+          showSizeChanger: true,
+        }}
       />
       
+      {/* 新增二维码表单 */}
       <ModalForm
         title="新增二维码"
-        width="400px"
+        width="500px"
         open={createModalOpen}
         onOpenChange={handleModalOpen}
-        onFinish={async (value) => {
-          message.success('提交成功');
-          handleModalOpen(false);
-          actionRef.current?.reload();
-          return true;
-        }}
+        onFinish={handleCreate}
       >
-        <ProFormText
+        <ProFormDigit
           rules={[
-            {
-              required: true,
-              message: '二维码名称为必填项',
-            },
+            { required: true, message: '生成数量为必填项' },
+            { min: 1, message: '生成数量必须大于0' },
+            { max: 10000, message: '单次生成数量不能超过10000' },
           ]}
           width="md"
-          name="name"
-          label="二维码名称"
-        />
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: '二维码内容为必填项',
-            },
-          ]}
-          width="md"
-          name="content"
-          label="二维码内容"
-        />
-        <ProFormSelect
-          width="md"
-          name="type"
-          label="类型"
-          options={[
-            { label: '产品', value: 'product' },
-            { label: '设备', value: 'equipment' },
-            { label: '工序', value: 'process' },
-          ]}
-        />
-        <ProFormSelect
-          width="md"
-          name="status"
-          label="状态"
-          options={[
-            { label: '启用', value: 'active' },
-            { label: '禁用', value: 'inactive' },
-          ]}
-        />
-      </ModalForm>
-      
-      <ModalForm
-        title="编辑二维码"
-        width="400px"
-        open={updateModalOpen}
-        onOpenChange={handleUpdateModalOpen}
-        initialValues={currentRow}
-        onFinish={async (value) => {
-          message.success('更新成功');
-          handleUpdateModalOpen(false);
-          setCurrentRow(undefined);
-          actionRef.current?.reload();
-          return true;
-        }}
-      >
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: '二维码名称为必填项',
-            },
-          ]}
-          width="md"
-          name="name"
-          label="二维码名称"
+          name="quantity"
+          label="生成数量"
+          placeholder="请输入要生成的二维码数量"
+          min={1}
+          max={10000}
+          fieldProps={{
+            precision: 0,
+          }}
         />
         <ProFormText
           rules={[
-            {
-              required: true,
-              message: '二维码内容为必填项',
-            },
+            { required: true, message: '访问URL为必填项' },
+            { type: 'url', message: '请输入有效的URL地址' },
           ]}
           width="md"
-          name="content"
-          label="二维码内容"
-        />
-        <ProFormSelect
-          width="md"
-          name="type"
-          label="类型"
-          options={[
-            { label: '产品', value: 'product' },
-            { label: '设备', value: 'equipment' },
-            { label: '工序', value: 'process' },
-          ]}
-        />
-        <ProFormSelect
-          width="md"
-          name="status"
-          label="状态"
-          options={[
-            { label: '启用', value: 'active' },
-            { label: '禁用', value: 'inactive' },
-          ]}
+          name="accessUrl"
+          label="访问URL"
+          placeholder="请输入二维码访问地址，如：https://example.com/product/"
+          extra="二维码扫描后跳转的基础URL地址"
         />
       </ModalForm>
 
-      <Modal
-        title="二维码预览"
-        open={previewModalOpen}
-        onCancel={() => setPreviewModalOpen(false)}
-        footer={[
-          <Button key="export" type="primary" onClick={() => handleExportQR(currentRow!)}>
-            <DownloadOutlined /> 导出二维码
-          </Button>,
-          <Button key="close" onClick={() => setPreviewModalOpen(false)}>
-            关闭
-          </Button>,
-        ]}
+      {/* 导出二维码表单 */}
+      <ModalForm
+        title="导出二维码"
+        width="500px"
+        open={exportModalOpen}
+        onOpenChange={setExportModalOpen}
+        onFinish={handleExport}
       >
-        <div style={{ textAlign: 'center', padding: '20px' }}>
-          <div style={{ 
-            width: '200px', 
-            height: '200px', 
-            border: '1px solid #d9d9d9', 
-            margin: '0 auto 16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#fafafa'
-          }}>
-            <QrcodeOutlined style={{ fontSize: '100px', color: '#1890ff' }} />
-          </div>
-          <p>二维码内容: {currentRow?.content}</p>
-          <p style={{ color: '#666', fontSize: '12px' }}>注：实际项目中这里会显示真实的二维码图片</p>
+        <div style={{ marginBottom: 16, padding: 12, backgroundColor: '#f6f6f6', borderRadius: 4 }}>
+          <p style={{ margin: 0, color: '#666' }}>
+            批次号：{currentRecord?.batchNumber}<br/>
+            数量：{currentRecord?.quantity} 个
+          </p>
         </div>
-      </Modal>
+        <ProFormText
+          rules={[
+            { required: true, message: '导出地址为必填项' },
+          ]}
+          width="md"
+          name="exportPath"
+          label="导出地址"
+          placeholder="请输入导出文件保存路径，如：D:\\QRCodes\\"
+          extra="二维码文件将保存到指定目录"
+        />
+        <ProFormSelect
+          name="targetDevice"
+          label="选择导入设备"
+          width="md"
+          options={deviceOptions}
+          rules={[{ required: true, message: '请选择导入设备' }]}
+          placeholder="请选择要导入二维码的设备"
+          extra="选择将二维码数据导入到哪个设备"
+        />
+      </ModalForm>
     </PageContainer>
   );
 };

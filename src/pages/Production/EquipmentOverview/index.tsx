@@ -1,149 +1,204 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { Card, Row, Col, Statistic, Progress, List, Badge } from 'antd';
+import type { ProColumns } from '@ant-design/pro-components';
+import { ProTable } from '@ant-design/pro-components';
+import { Badge, Tag } from 'antd';
 import React from 'react';
 
+type EquipmentOverviewItem = {
+  id: string;
+  name: string;
+  status: 'running' | 'idle' | 'maintenance' | 'fault';
+  processName: string;
+  productionLineName: string;
+  planStatus: 'normal' | 'delayed' | 'ahead' | 'paused';
+  qrCodeCount: number;
+};
+
 const EquipmentOverview: React.FC = () => {
-  // 模拟设备状态数据
-  const equipmentStats = {
-    total: 24,
-    running: 18,
-    idle: 4,
-    maintenance: 1,
-    fault: 1,
+  const statusMap = {
+    running: { text: '运行中', status: 'processing' as const },
+    idle: { text: '空闲', status: 'default' as const },
+    maintenance: { text: '维护中', status: 'warning' as const },
+    fault: { text: '故障', status: 'error' as const },
   };
 
-  const equipmentList = [
-    { name: '成型机A', status: 'running', efficiency: 95, location: '车间A-01' },
-    { name: '成型机B', status: 'running', efficiency: 88, location: '车间A-02' },
-    { name: '检测设备A', status: 'idle', efficiency: 0, location: '车间B-01' },
-    { name: '传送带C', status: 'maintenance', efficiency: 0, location: '车间C-01' },
-    { name: '包装机D', status: 'fault', efficiency: 0, location: '车间D-01' },
+  const planStatusMap = {
+    normal: { text: '正常', color: 'green' },
+    delayed: { text: '延期', color: 'red' },
+    ahead: { text: '提前', color: 'blue' },
+    paused: { text: '暂停', color: 'orange' },
+  };
+
+  const columns: ProColumns<EquipmentOverviewItem>[] = [
+    {
+      title: '序号',
+      dataIndex: 'index',
+      valueType: 'indexBorder',
+      width: 60,
+      search: false,
+    },
+    {
+      title: '设备名称',
+      dataIndex: 'name',
+      ellipsis: true,
+      width: 150,
+    },
+    {
+      title: '设备状态',
+      dataIndex: 'status',
+      width: 100,
+      render: (_, record) => (
+        <Badge
+          status={statusMap[record.status].status}
+          text={statusMap[record.status].text}
+        />
+      ),
+      valueEnum: {
+        running: { text: '运行中', status: 'processing' },
+        idle: { text: '空闲', status: 'default' },
+        maintenance: { text: '维护中', status: 'warning' },
+        fault: { text: '故障', status: 'error' },
+      },
+    },
+    {
+      title: '所在工序',
+      dataIndex: 'processName',
+      ellipsis: true,
+      width: 120,
+      search: false,
+    },
+    {
+      title: '所在产线',
+      dataIndex: 'productionLineName',
+      ellipsis: true,
+      width: 120,
+      search: false,
+    },
+    {
+      title: '计划状态',
+      dataIndex: 'planStatus',
+      width: 100,
+      render: (_, record) => (
+        <Tag color={planStatusMap[record.planStatus].color}>
+          {planStatusMap[record.planStatus].text}
+        </Tag>
+      ),
+      valueEnum: {
+        normal: { text: '正常', status: 'success' },
+        delayed: { text: '延期', status: 'error' },
+        ahead: { text: '提前', status: 'processing' },
+        paused: { text: '暂停', status: 'warning' },
+      },
+    },
+    {
+      title: '二维码数量',
+      dataIndex: 'qrCodeCount',
+      width: 120,
+      search: false,
+      render: (text) => (
+        <span style={{ fontWeight: 'bold', color: '#1890ff' }}>
+          {text}
+        </span>
+      ),
+    },
   ];
 
-  const statusMap = {
-    running: { text: '运行中', color: 'green' },
-    idle: { text: '空闲', color: 'blue' },
-    maintenance: { text: '维护中', color: 'orange' },
-    fault: { text: '故障', color: 'red' },
-  };
-
   return (
-    <PageContainer title="设备状态概览">
-      <Row gutter={[16, 16]}>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="设备总数"
-              value={equipmentStats.total}
-              suffix="台"
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="运行中"
-              value={equipmentStats.running}
-              suffix="台"
-              valueStyle={{ color: '#3f8600' }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="空闲"
-              value={equipmentStats.idle}
-              suffix="台"
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="故障/维护"
-              value={equipmentStats.fault + equipmentStats.maintenance}
-              suffix="台"
-              valueStyle={{ color: '#cf1322' }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-        <Col span={12}>
-          <Card title="设备运行率">
-            <Progress
-              type="circle"
-              percent={Math.round((equipmentStats.running / equipmentStats.total) * 100)}
-              format={(percent) => `${percent}%`}
-              size={120}
-            />
-            <div style={{ textAlign: 'center', marginTop: 16 }}>
-              <p>总体运行率</p>
-            </div>
-          </Card>
-        </Col>
-        <Col span={12}>
-          <Card title="设备状态分布">
-            <Row gutter={16}>
-              <Col span={12}>
-                <Statistic title="运行中" value={equipmentStats.running} suffix={`/ ${equipmentStats.total}`} />
-              </Col>
-              <Col span={12}>
-                <Statistic title="空闲" value={equipmentStats.idle} suffix={`/ ${equipmentStats.total}`} />
-              </Col>
-              <Col span={12}>
-                <Statistic title="维护中" value={equipmentStats.maintenance} suffix={`/ ${equipmentStats.total}`} />
-              </Col>
-              <Col span={12}>
-                <Statistic title="故障" value={equipmentStats.fault} suffix={`/ ${equipmentStats.total}`} />
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-      </Row>
-
-      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-        <Col span={24}>
-          <Card title="设备实时状态">
-            <List
-              dataSource={equipmentList}
-              renderItem={(item) => (
-                <List.Item>
-                  <List.Item.Meta
-                    title={
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span>{item.name}</span>
-                        <Badge
-                          color={statusMap[item.status as keyof typeof statusMap].color}
-                          text={statusMap[item.status as keyof typeof statusMap].text}
-                        />
-                      </div>
-                    }
-                    description={
-                      <div>
-                        <div>位置: {item.location}</div>
-                        {item.status === 'running' && (
-                          <div style={{ marginTop: 8 }}>
-                            <span>运行效率: </span>
-                            <Progress
-                              percent={item.efficiency}
-                              size="small"
-                              style={{ width: 200, display: 'inline-block' }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    }
-                  />
-                </List.Item>
-              )}
-            />
-          </Card>
-        </Col>
-      </Row>
+    <PageContainer>
+      <ProTable<EquipmentOverviewItem>
+        headerTitle="设备状态概览"
+        rowKey="id"
+        search={{
+          labelWidth: 120,
+        }}
+        request={async () => {
+          // 模拟数据
+          const mockData: EquipmentOverviewItem[] = [
+            {
+              id: '1',
+              name: '成型机A',
+              status: 'running',
+              processName: '切割工序',
+              productionLineName: '产线A',
+              planStatus: 'normal',
+              qrCodeCount: 1250,
+            },
+            {
+              id: '2',
+              name: '检测设备B',
+              status: 'running',
+              processName: '焊接工序',
+              productionLineName: '产线B',
+              planStatus: 'ahead',
+              qrCodeCount: 980,
+            },
+            {
+              id: '3',
+              name: '运输带C',
+              status: 'idle',
+              processName: '打磨工序',
+              productionLineName: '产线A',
+              planStatus: 'normal',
+              qrCodeCount: 0,
+            },
+            {
+              id: '4',
+              name: '包装机D',
+              status: 'maintenance',
+              processName: '包装工序',
+              productionLineName: '产线C',
+              planStatus: 'paused',
+              qrCodeCount: 0,
+            },
+            {
+              id: '5',
+              name: '喷涂设备E',
+              status: 'fault',
+              processName: '喷涂工序',
+              productionLineName: '产线B',
+              planStatus: 'delayed',
+              qrCodeCount: 0,
+            },
+            {
+              id: '6',
+              name: '焊接机F',
+              status: 'running',
+              processName: '焊接工序',
+              productionLineName: '产线A',
+              planStatus: 'normal',
+              qrCodeCount: 2100,
+            },
+            {
+              id: '7',
+              name: '切割机G',
+              status: 'running',
+              processName: '切割工序',
+              productionLineName: '产线C',
+              planStatus: 'normal',
+              qrCodeCount: 1800,
+            },
+            {
+              id: '8',
+              name: '质检设备H',
+              status: 'idle',
+              processName: '质检工序',
+              productionLineName: '产线B',
+              planStatus: 'normal',
+              qrCodeCount: 0,
+            },
+          ];
+          return {
+            data: mockData,
+            success: true,
+            total: mockData.length,
+          };
+        }}
+        columns={columns}
+        pagination={{
+          defaultPageSize: 10,
+          showSizeChanger: true,
+        }}
+      />
     </PageContainer>
   );
 };

@@ -1,36 +1,47 @@
 import { EyeOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
-  ModalForm,
   PageContainer,
-  ProFormText,
-  ProFormTextArea,
-  ProFormSelect,
-  ProFormDateTimePicker,
   ProTable,
   ProDescriptions,
 } from '@ant-design/pro-components';
-import { Button, message, Popconfirm, Modal, Tag } from 'antd';
+import { Button, Modal, Tag, QRCode } from 'antd';
 import React, { useRef, useState } from 'react';
 
 type ProductionInfoItem = {
   id: string;
-  batchNo: string;
-  productName: string;
-  processName: string;
-  equipmentName: string;
-  operator: string;
-  startTime: string;
-  endTime: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  quantity: number;
-  qualifiedQuantity: number;
-  remarks: string;
+  qrCode: string;
+  qrCodeNumber: string;
+  model: string;
+  drawingNumber: string;
+  trademark: string;
+  productionTime: string;
+  batchNumber: string;
+  // 上沙后
+  afterSandScanTime?: string;
+  afterSandOperator?: string;
+  // 瓷检后
+  afterCeramicInspectionScanTime?: string;
+  afterCeramicInspectionOperator?: string;
+  // 水压检测前
+  beforeWaterPressureTestScanTime?: string;
+  beforeWaterPressureTestOperator?: string;
+  // 水压检测后
+  afterWaterPressureTestScanTime?: string;
+  afterWaterPressureTestOperator?: string;
+  // 胶装前
+  beforeGluingScanTime?: string;
+  beforeGluingOperator?: string;
+  // 电检前
+  beforeElectricalTestScanTime?: string;
+  beforeElectricalTestOperator?: string;
+  // 电检后
+  afterElectricalTestScanTime?: string;
+  afterElectricalTestOperator?: string;
   createTime: string;
 };
 
 const ProductionInfoManagement: React.FC = () => {
-  const [createModalOpen, handleModalOpen] = useState<boolean>(false);
   const [detailModalOpen, setDetailModalOpen] = useState<boolean>(false);
   const [currentRow, setCurrentRow] = useState<ProductionInfoItem>();
   const actionRef = useRef<ActionType>();
@@ -39,32 +50,40 @@ const ProductionInfoManagement: React.FC = () => {
   const mockData: ProductionInfoItem[] = [
     {
       id: '1',
-      batchNo: 'BATCH001',
-      productName: '智能手机A1',
-      processName: '组装工序',
-      equipmentName: '自动组装线A',
-      operator: '张三',
-      startTime: '2023-12-01 08:00:00',
-      endTime: '2023-12-01 12:00:00',
-      status: 'completed',
-      quantity: 100,
-      qualifiedQuantity: 98,
-      remarks: '正常生产',
+      qrCode: 'QR001',
+      qrCodeNumber: 'QRN20231201001',
+      model: 'A1-Pro',
+      drawingNumber: 'DWG-001',
+      trademark: '智能品牌',
+      productionTime: '2023-12-01 08:00:00',
+      batchNumber: 'BATCH001',
+      afterSandScanTime: '2023-12-01 09:00:00',
+      afterSandOperator: '张三',
+      afterCeramicInspectionScanTime: '2023-12-01 10:00:00',
+      afterCeramicInspectionOperator: '李四',
+      beforeWaterPressureTestScanTime: '2023-12-01 11:00:00',
+      beforeWaterPressureTestOperator: '王五',
+      afterWaterPressureTestScanTime: '2023-12-01 12:00:00',
+      afterWaterPressureTestOperator: '赵六',
+      beforeGluingScanTime: '2023-12-01 13:00:00',
+      beforeGluingOperator: '钱七',
+      beforeElectricalTestScanTime: '2023-12-01 14:00:00',
+      beforeElectricalTestOperator: '孙八',
+      afterElectricalTestScanTime: '2023-12-01 15:00:00',
+      afterElectricalTestOperator: '周九',
       createTime: '2023-12-01 08:00:00',
     },
     {
       id: '2',
-      batchNo: 'BATCH002',
-      productName: '平板电脑B2',
-      processName: '测试工序',
-      equipmentName: '自动测试设备B',
-      operator: '李四',
-      startTime: '2023-12-01 14:00:00',
-      endTime: '',
-      status: 'processing',
-      quantity: 50,
-      qualifiedQuantity: 0,
-      remarks: '进行中',
+      qrCode: 'QR002',
+      qrCodeNumber: 'QRN20231201002',
+      model: 'B2-Standard',
+      drawingNumber: 'DWG-002',
+      trademark: '科技品牌',
+      productionTime: '2023-12-01 14:00:00',
+      batchNumber: 'BATCH002',
+      afterSandScanTime: '2023-12-01 15:00:00',
+      afterSandOperator: '陈十',
       createTime: '2023-12-01 14:00:00',
     },
   ];
@@ -74,97 +93,162 @@ const ProductionInfoManagement: React.FC = () => {
     setDetailModalOpen(true);
   };
 
-  const getStatusColor = (status: string) => {
-    const colorMap = {
-      pending: 'default',
-      processing: 'processing',
-      completed: 'success',
-      failed: 'error',
-    };
-    return colorMap[status as keyof typeof colorMap] || 'default';
-  };
-
-  const getStatusText = (status: string) => {
-    const textMap = {
-      pending: '待开始',
-      processing: '进行中',
-      completed: '已完成',
-      failed: '失败',
-    };
-    return textMap[status as keyof typeof textMap] || status;
-  };
-
   const columns: ProColumns<ProductionInfoItem>[] = [
     {
-      title: '批次号',
-      dataIndex: 'batchNo',
-      render: (dom, entity) => {
-        return (
-          <a onClick={() => handleViewDetail(entity)}>
-            {dom}
-          </a>
-        );
-      },
+      title: '序号',
+      dataIndex: 'index',
+      valueType: 'indexBorder',
+      width: 60,
+      fixed: 'left',
     },
     {
-      title: '产品名称',
-      dataIndex: 'productName',
-    },
-    {
-      title: '工序名称',
-      dataIndex: 'processName',
-    },
-    {
-      title: '设备名称',
-      dataIndex: 'equipmentName',
-    },
-    {
-      title: '操作员',
-      dataIndex: 'operator',
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
+      title: '二维码',
+      dataIndex: 'qrCode',
+      width: 100,
       render: (_, record) => (
-        <Tag color={getStatusColor(record.status)}>
-          {getStatusText(record.status)}
-        </Tag>
+        <QRCode
+          value={record.qrCode}
+          size={50}
+          style={{ cursor: 'pointer' }}
+          onClick={() => handleViewDetail(record)}
+        />
       ),
     },
     {
-      title: '生产数量',
-      dataIndex: 'quantity',
+      title: '二维码编号',
+      dataIndex: 'qrCodeNumber',
+      width: 150,
+      ellipsis: true,
     },
     {
-      title: '合格数量',
-      dataIndex: 'qualifiedQuantity',
+      title: '型号',
+      dataIndex: 'model',
+      width: 120,
+      ellipsis: true,
     },
     {
-      title: '开始时间',
-      dataIndex: 'startTime',
+      title: '图号',
+      dataIndex: 'drawingNumber',
+      width: 120,
+      ellipsis: true,
+    },
+    {
+      title: '商标',
+      dataIndex: 'trademark',
+      width: 120,
+      ellipsis: true,
+    },
+    {
+      title: '生产时间',
+      dataIndex: 'productionTime',
       valueType: 'dateTime',
+      width: 160,
+    },
+    {
+      title: '批次编号',
+      dataIndex: 'batchNumber',
+      width: 120,
+      ellipsis: true,
+    },
+    {
+      title: '上沙后扫码时间',
+      dataIndex: 'afterSandScanTime',
+      valueType: 'dateTime',
+      width: 160,
+    },
+    {
+      title: '上沙后操作人员',
+      dataIndex: 'afterSandOperator',
+      width: 120,
+      ellipsis: true,
+    },
+    {
+      title: '瓷检后扫码时间',
+      dataIndex: 'afterCeramicInspectionScanTime',
+      valueType: 'dateTime',
+      width: 160,
+    },
+    {
+      title: '瓷检后操作人员',
+      dataIndex: 'afterCeramicInspectionOperator',
+      width: 120,
+      ellipsis: true,
+    },
+    {
+      title: '水压检测前扫码时间',
+      dataIndex: 'beforeWaterPressureTestScanTime',
+      valueType: 'dateTime',
+      width: 180,
+    },
+    {
+      title: '水压检测前操作人员',
+      dataIndex: 'beforeWaterPressureTestOperator',
+      width: 140,
+      ellipsis: true,
+    },
+    {
+      title: '水压检测后扫码时间',
+      dataIndex: 'afterWaterPressureTestScanTime',
+      valueType: 'dateTime',
+      width: 180,
+    },
+    {
+      title: '水压检测后操作人员',
+      dataIndex: 'afterWaterPressureTestOperator',
+      width: 140,
+      ellipsis: true,
+    },
+    {
+      title: '胶装前扫码时间',
+      dataIndex: 'beforeGluingScanTime',
+      valueType: 'dateTime',
+      width: 160,
+    },
+    {
+      title: '胶装前操作人员',
+      dataIndex: 'beforeGluingOperator',
+      width: 120,
+      ellipsis: true,
+    },
+    {
+      title: '电检前扫码时间',
+      dataIndex: 'beforeElectricalTestScanTime',
+      valueType: 'dateTime',
+      width: 160,
+    },
+    {
+      title: '电检前操作人员',
+      dataIndex: 'beforeElectricalTestOperator',
+      width: 120,
+      ellipsis: true,
+    },
+    {
+      title: '电检后扫码时间',
+      dataIndex: 'afterElectricalTestScanTime',
+      valueType: 'dateTime',
+      width: 160,
+    },
+    {
+      title: '电检后操作人员',
+      dataIndex: 'afterElectricalTestOperator',
+      width: 120,
+      ellipsis: true,
     },
     {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
+      width: 80,
+      fixed: 'right',
       render: (_, record) => [
-        <a
-          key="detail"
+        <Button
+          key="view"
+          type="link"
+          icon={<EyeOutlined />}
           onClick={() => handleViewDetail(record)}
         >
-          <EyeOutlined /> 详情
-        </a>,
-        <Popconfirm
-          key="delete"
-          title="确定删除这条生产信息吗？"
-          onConfirm={() => {
-            message.success('删除成功');
-            actionRef.current?.reload();
-          }}
-        >
-          <a>删除</a>
-        </Popconfirm>,
+          查看
+        </Button>,
       ],
     },
   ];
@@ -178,100 +262,42 @@ const ProductionInfoManagement: React.FC = () => {
         search={{
           labelWidth: 120,
         }}
-        toolBarRender={() => [
-          <Button
-            type="primary"
-            key="primary"
-            onClick={() => {
-              handleModalOpen(true);
-            }}
-          >
-            <PlusOutlined /> 新建生产信息
-          </Button>,
-        ]}
-        request={async () => {
+        scroll={{ x: 2800 }}
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }}
+        request={async (params) => {
+          // 模拟搜索过滤
+          let filteredData = mockData;
+          
+          if (params.qrCodeNumber) {
+            filteredData = filteredData.filter(item => 
+              item.qrCodeNumber.includes(params.qrCodeNumber)
+            );
+          }
+          
+          if (params.model) {
+            filteredData = filteredData.filter(item => 
+              item.model.includes(params.model)
+            );
+          }
+          
+          if (params.batchNumber) {
+            filteredData = filteredData.filter(item => 
+              item.batchNumber.includes(params.batchNumber)
+            );
+          }
+
           return {
-            data: mockData,
+            data: filteredData,
             success: true,
-            total: mockData.length,
+            total: filteredData.length,
           };
         }}
         columns={columns}
       />
-      
-      <ModalForm
-        title="新建生产信息"
-        width="600px"
-        open={createModalOpen}
-        onOpenChange={handleModalOpen}
-        onFinish={async (value) => {
-          message.success('提交成功');
-          handleModalOpen(false);
-          actionRef.current?.reload();
-          return true;
-        }}
-      >
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: '批次号为必填项',
-            },
-          ]}
-          width="md"
-          name="batchNo"
-          label="批次号"
-        />
-        <ProFormSelect
-          width="md"
-          name="productName"
-          label="产品名称"
-          options={[
-            { label: '智能手机A1', value: '智能手机A1' },
-            { label: '平板电脑B2', value: '平板电脑B2' },
-          ]}
-        />
-        <ProFormSelect
-          width="md"
-          name="processName"
-          label="工序名称"
-          options={[
-            { label: '原料准备', value: '原料准备' },
-            { label: '加工处理', value: '加工处理' },
-            { label: '组装工序', value: '组装工序' },
-            { label: '测试工序', value: '测试工序' },
-          ]}
-        />
-        <ProFormSelect
-          width="md"
-          name="equipmentName"
-          label="设备名称"
-          options={[
-            { label: '自动组装线A', value: '自动组装线A' },
-            { label: '自动测试设备B', value: '自动测试设备B' },
-          ]}
-        />
-        <ProFormText
-          width="md"
-          name="operator"
-          label="操作员"
-        />
-        <ProFormText
-          width="md"
-          name="quantity"
-          label="生产数量"
-        />
-        <ProFormDateTimePicker
-          width="md"
-          name="startTime"
-          label="开始时间"
-        />
-        <ProFormTextArea
-          width="md"
-          name="remarks"
-          label="备注"
-        />
-      </ModalForm>
 
       <Modal
         title="生产信息详情"
@@ -282,7 +308,7 @@ const ProductionInfoManagement: React.FC = () => {
             关闭
           </Button>,
         ]}
-        width={800}
+        width={1200}
       >
         {currentRow && (
           <ProDescriptions
@@ -290,56 +316,99 @@ const ProductionInfoManagement: React.FC = () => {
             dataSource={currentRow}
             columns={[
               {
-                title: '批次号',
-                dataIndex: 'batchNo',
-              },
-              {
-                title: '产品名称',
-                dataIndex: 'productName',
-              },
-              {
-                title: '工序名称',
-                dataIndex: 'processName',
-              },
-              {
-                title: '设备名称',
-                dataIndex: 'equipmentName',
-              },
-              {
-                title: '操作员',
-                dataIndex: 'operator',
-              },
-              {
-                title: '状态',
-                dataIndex: 'status',
-                render: (_, record) => (
-                  <Tag color={getStatusColor(record.status)}>
-                    {getStatusText(record.status)}
-                  </Tag>
+                title: '二维码',
+                dataIndex: 'qrCode',
+                render: () => (
+                  <QRCode value={currentRow.qrCode} size={100} />
                 ),
               },
               {
-                title: '生产数量',
-                dataIndex: 'quantity',
+                title: '二维码编号',
+                dataIndex: 'qrCodeNumber',
               },
               {
-                title: '合格数量',
-                dataIndex: 'qualifiedQuantity',
+                title: '型号',
+                dataIndex: 'model',
               },
               {
-                title: '开始时间',
-                dataIndex: 'startTime',
+                title: '图号',
+                dataIndex: 'drawingNumber',
+              },
+              {
+                title: '商标',
+                dataIndex: 'trademark',
+              },
+              {
+                title: '生产时间',
+                dataIndex: 'productionTime',
                 valueType: 'dateTime',
               },
               {
-                title: '结束时间',
-                dataIndex: 'endTime',
+                title: '批次编号',
+                dataIndex: 'batchNumber',
+              },
+              {
+                title: '上沙后扫码时间',
+                dataIndex: 'afterSandScanTime',
                 valueType: 'dateTime',
               },
               {
-                title: '备注',
-                dataIndex: 'remarks',
-                span: 2,
+                title: '上沙后操作人员',
+                dataIndex: 'afterSandOperator',
+              },
+              {
+                title: '瓷检后扫码时间',
+                dataIndex: 'afterCeramicInspectionScanTime',
+                valueType: 'dateTime',
+              },
+              {
+                title: '瓷检后操作人员',
+                dataIndex: 'afterCeramicInspectionOperator',
+              },
+              {
+                title: '水压检测前扫码时间',
+                dataIndex: 'beforeWaterPressureTestScanTime',
+                valueType: 'dateTime',
+              },
+              {
+                title: '水压检测前操作人员',
+                dataIndex: 'beforeWaterPressureTestOperator',
+              },
+              {
+                title: '水压检测后扫码时间',
+                dataIndex: 'afterWaterPressureTestScanTime',
+                valueType: 'dateTime',
+              },
+              {
+                title: '水压检测后操作人员',
+                dataIndex: 'afterWaterPressureTestOperator',
+              },
+              {
+                title: '胶装前扫码时间',
+                dataIndex: 'beforeGluingScanTime',
+                valueType: 'dateTime',
+              },
+              {
+                title: '胶装前操作人员',
+                dataIndex: 'beforeGluingOperator',
+              },
+              {
+                title: '电检前扫码时间',
+                dataIndex: 'beforeElectricalTestScanTime',
+                valueType: 'dateTime',
+              },
+              {
+                title: '电检前操作人员',
+                dataIndex: 'beforeElectricalTestOperator',
+              },
+              {
+                title: '电检后扫码时间',
+                dataIndex: 'afterElectricalTestScanTime',
+                valueType: 'dateTime',
+              },
+              {
+                title: '电检后操作人员',
+                dataIndex: 'afterElectricalTestOperator',
               },
               {
                 title: '创建时间',
