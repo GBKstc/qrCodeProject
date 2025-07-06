@@ -102,45 +102,72 @@ const Login: React.FC = () => {
   const { styles } = useStyles();
   const intl = useIntl();
 
-  const fetchUserInfo = async () => {
-    const userInfo = await initialState?.fetchUserInfo?.();
-    if (userInfo) {
-      flushSync(() => {
-        setInitialState((s) => ({
-          ...s,
-          currentUser: userInfo,
-        }));
-      });
-    }
-  };
-
+  // 在 handleSubmit 函数中，完善用户信息存储
   const handleSubmit = async (values: API.LoginParams) => {
     try {
-      // 登录
-      const msg = await login({ ...values, type });
-      if (msg.status === 'ok') {
+      const loginParams = {
+        userName: values.userName,
+        passWord: values.passWord,
+      };
+      
+      const response = await login(loginParams);
+      console.log('登录响应:', response);
+      
+      const data = response.data;
+      if (data && data.id) {
         const defaultLoginSuccessMessage = intl.formatMessage({
           id: 'pages.login.success',
           defaultMessage: '登录成功！',
         });
         message.success(defaultLoginSuccessMessage);
-        await fetchUserInfo();
+        
+        // 存储完整的用户信息到 localStorage
+        localStorage.setItem('userName', data.name || data.username || '');
+        localStorage.setItem('userInfo', JSON.stringify(data));
+        localStorage.setItem('userId', data.id.toString());
+        
+        // 如果后端返回 token，也存储
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+        }
+        
+        // 存储权限信息（便于快速访问）
+        if (data.authList) {
+          localStorage.setItem('userPermissions', JSON.stringify(data.authList));
+        }
+        
         const urlParams = new URL(window.location.href).searchParams;
         history.push(urlParams.get('redirect') || '/');
         return;
       }
-      console.log(msg);
-      // 如果失败去设置用户错误信息
-      setUserLoginState(msg);
-    } catch (error) {
+      
+      // 登录失败处理
+      message.error(response.message || '登录失败');
+    } catch (error: any) {
       const defaultLoginFailureMessage = intl.formatMessage({
         id: 'pages.login.failure',
         defaultMessage: '登录失败，请重试！',
       });
-      console.log(error);
-      message.error(defaultLoginFailureMessage);
+      
+      if (error.name === 'BizError') {
+        message.error(error.info?.errorMessage || defaultLoginFailureMessage);
+      } else {
+        message.error(defaultLoginFailureMessage);
+      }
     }
   };
+  // 删除 fetchUserInfo 函数调用
+  // const fetchUserInfo = async () => {
+  //   const userInfo = await initialState?.fetchUserInfo?.();
+  //   if (userInfo) {
+  //     flushSync(() => {
+  //       setInitialState((s) => ({
+  //         ...s,
+  //         currentUser: userInfo,
+  //       }));
+  //     });
+  //   }
+  // };
   const { status, type: loginType } = userLoginState;
 
   return (
@@ -217,7 +244,7 @@ const Login: React.FC = () => {
           {type === 'account' && (
             <>
               <ProFormText
-                name="username"
+                name="userName"
                 fieldProps={{
                   size: 'large',
                   prefix: <UserOutlined />,
@@ -239,7 +266,7 @@ const Login: React.FC = () => {
                 ]}
               />
               <ProFormText.Password
-                name="password"
+                name="passWord"
                 fieldProps={{
                   size: 'large',
                   prefix: <LockOutlined />,

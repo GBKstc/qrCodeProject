@@ -6,18 +6,29 @@ import {
   ProFormText,
   ProFormTextArea,
   ProFormDigit,
+  ProFormSelect,
   ProTable,
 } from '@ant-design/pro-components';
-import { Button, message, Popconfirm } from 'antd';
+import { Button, message, Popconfirm, Tag } from 'antd';
 import React, { useRef, useState } from 'react';
+// 从生产管理专门的API文件导入
+import { 
+  getProcessList, 
+  addProcess, 
+  updateProcess, 
+  removeProcess 
+} from '@/services/production/process';
 
 type ProcessItem = {
-  id: string;
-  name: string;
-  description: string;
-  sequence: number;
-  createTime: string;
-  updateTime: string;
+  id?: string;
+  name?: string;
+  description?: string;
+  sequence?: number;
+  status?: number;
+  createTime?: string;
+  updateTime?: string;
+  createBy?: string;
+  updateBy?: string;
 };
 
 const ProcessManagement: React.FC = () => {
@@ -25,42 +36,6 @@ const ProcessManagement: React.FC = () => {
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
   const [currentRow, setCurrentRow] = useState<ProcessItem>();
   const actionRef = useRef<ActionType>();
-
-  // 模拟数据
-  const mockData: ProcessItem[] = [
-    {
-      id: '1',
-      name: '原料准备',
-      description: '准备生产所需的原材料',
-      sequence: 1,
-      createTime: '2023-12-01 10:00:00',
-      updateTime: '2023-12-01 10:00:00',
-    },
-    {
-      id: '2',
-      name: '加工处理',
-      description: '对原材料进行加工处理',
-      sequence: 2,
-      createTime: '2023-12-01 10:00:00',
-      updateTime: '2023-12-15 14:30:00',
-    },
-    {
-      id: '3',
-      name: '质量检测',
-      description: '对加工后的产品进行质量检测',
-      sequence: 3,
-      createTime: '2023-12-02 09:00:00',
-      updateTime: '2023-12-02 09:00:00',
-    },
-    {
-      id: '4',
-      name: '包装入库',
-      description: '对合格产品进行包装并入库',
-      sequence: 4,
-      createTime: '2023-12-03 11:00:00',
-      updateTime: '2023-12-10 16:20:00',
-    },
-  ];
 
   const columns: ProColumns<ProcessItem>[] = [
     {
@@ -87,14 +62,28 @@ const ProcessManagement: React.FC = () => {
       },
     },
     {
-      title: '工序管理',
+      title: '工序描述',
       dataIndex: 'description',
       valueType: 'textarea',
       ellipsis: true,
       search: false,
     },
     {
-      title: '设置时间',
+      title: '状态',
+      dataIndex: 'status',
+      valueType: 'select',
+      valueEnum: {
+        0: { text: '禁用', status: 'Default' },
+        1: { text: '启用', status: 'Success' },
+      },
+      render: (_, record) => (
+        <Tag color={record.status === 1 ? 'green' : 'red'}>
+          {record.status === 1 ? '启用' : '禁用'}
+        </Tag>
+      ),
+    },
+    {
+      title: '创建时间',
       dataIndex: 'createTime',
       valueType: 'dateTime',
       search: false,
@@ -123,9 +112,14 @@ const ProcessManagement: React.FC = () => {
         <Popconfirm
           key="delete"
           title="确定删除这个工序吗？"
-          onConfirm={() => {
-            message.success('删除成功');
-            actionRef.current?.reload();
+          onConfirm={async () => {
+            try {
+              await removeProcess(record.id!);
+              message.success('删除成功');
+              actionRef.current?.reload();
+            } catch (error) {
+              message.error('删除失败');
+            }
           }}
           okText="确定"
           cancelText="取消"
@@ -136,10 +130,9 @@ const ProcessManagement: React.FC = () => {
     },
   ];
 
-  const handleCreate = async (values: any) => {
+  const handleCreate = async (values: ProcessItem) => {
     try {
-      // 这里应该调用API创建工序
-      console.log('创建工序:', values);
+      await addProcess(values);
       message.success('创建成功');
       handleModalOpen(false);
       actionRef.current?.reload();
@@ -150,10 +143,9 @@ const ProcessManagement: React.FC = () => {
     }
   };
 
-  const handleUpdate = async (values: any) => {
+  const handleUpdate = async (values: ProcessItem) => {
     try {
-      // 这里应该调用API更新工序
-      console.log('更新工序:', values);
+      await updateProcess({ ...currentRow, ...values });
       message.success('更新成功');
       handleUpdateModalOpen(false);
       setCurrentRow(undefined);
@@ -185,12 +177,45 @@ const ProcessManagement: React.FC = () => {
             <PlusOutlined /> 新建工序
           </Button>,
         ]}
-        request={async () => {
-          return {
-            data: mockData,
-            success: true,
-            total: mockData.length,
-          };
+        request={async (params) => {
+          try {
+            const response = await getProcessList({
+              current: params.current,
+              pageSize: params.pageSize,
+              name: params.name,
+              description: params.description,
+            });
+            
+            console.log('API 响应:', response);
+            
+            // 根据实际接口返回结构解析数据
+            const responseData = response.data || {};
+            const records = responseData.records || [];
+            
+            return {
+              data: records.map((item: any) => ({
+                id: item.id,
+                name: item.name,
+                description: item.descript, // 注意：接口返回的是 descript
+                sequence: item.sort, // 注意：接口返回的是 sort
+                status: 1, // 接口没有返回状态，设置默认值
+                createTime: item.createTime,
+                updateTime: item.updateTime,
+                createBy: item.operateName,
+                updateBy: item.operateName,
+              })),
+              success: response.success !== false,
+              total: responseData.total || 0,
+            };
+          } catch (error) {
+            console.error('获取工序列表失败:', error);
+            message.error('获取工序列表失败');
+            return {
+              data: [],
+              success: false,
+              total: 0,
+            };
+          }
         }}
         columns={columns}
       />
@@ -239,6 +264,22 @@ const ProcessManagement: React.FC = () => {
           placeholder="请输入工序序号"
           min={1}
         />
+        <ProFormSelect
+          name="status"
+          label="状态"
+          width="md"
+          options={[
+            { label: '启用', value: 1 },
+            { label: '禁用', value: 0 },
+          ]}
+          initialValue={1}
+          rules={[
+            {
+              required: true,
+              message: '请选择状态',
+            },
+          ]}
+        />
       </ModalForm>
       
       <ModalForm
@@ -285,6 +326,21 @@ const ProcessManagement: React.FC = () => {
           label="工序序号"
           placeholder="请输入工序序号"
           min={1}
+        />
+        <ProFormSelect
+          name="status"
+          label="状态"
+          width="md"
+          options={[
+            { label: '启用', value: 1 },
+            { label: '禁用', value: 0 },
+          ]}
+          rules={[
+            {
+              required: true,
+              message: '请选择状态',
+            },
+          ]}
         />
       </ModalForm>
     </PageContainer>

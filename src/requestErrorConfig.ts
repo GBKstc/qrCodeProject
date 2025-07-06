@@ -10,34 +10,52 @@ enum ErrorShowType {
   NOTIFICATION = 3,
   REDIRECT = 9,
 }
+
 // 与后端约定的响应数据格式
 interface ResponseStructure {
-  success: boolean;
-  data: any;
+  success?: boolean;
+  code?: number;
+  message?: string;
+  data?: any;
   errorCode?: number;
   errorMessage?: string;
   showType?: ErrorShowType;
 }
 
-/**
- * @name 错误处理
- * pro 自带的错误处理， 可以在这里做自己的改动
- * @doc https://umijs.org/docs/max/request#配置
- */
 export const errorConfig: RequestConfig = {
-  // 错误处理： umi@3 的错误处理方案。
   errorConfig: {
     // 错误抛出
     errorThrower: (res) => {
-      const { success, data, errorCode, errorMessage, showType } =
-        res as unknown as ResponseStructure;
-      if (!success) {
-        const error: any = new Error(errorMessage);
+      const response = res as unknown as ResponseStructure;
+      
+      // 适配不同的后端返回格式
+      // 如果有 success 字段，以 success 为准
+      if (response.success !== undefined && !response.success) {
+        const error: any = new Error(response.errorMessage || response.message || '请求失败');
         error.name = 'BizError';
-        error.info = { errorCode, errorMessage, showType, data };
-        throw error; // 抛出自制的错误
+        error.info = { 
+          errorCode: response.errorCode || response.code, 
+          errorMessage: response.errorMessage || response.message, 
+          showType: response.showType,
+          data: response.data 
+        };
+        throw error;
+      }
+      
+      // 如果没有 success 字段，根据 code 判断（通常 200 表示成功）
+      if (response.code !== undefined && response.code !== 200) {
+        const error: any = new Error(response.message || '请求失败');
+        error.name = 'BizError';
+        error.info = { 
+          errorCode: response.code, 
+          errorMessage: response.message, 
+          showType: response.showType,
+          data: response.data 
+        };
+        throw error;
       }
     },
+    
     // 错误接收及处理
     errorHandler: (error: any, opts: any) => {
       if (opts?.skipErrorHandler) throw error;

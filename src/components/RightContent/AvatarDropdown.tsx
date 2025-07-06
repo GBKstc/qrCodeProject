@@ -14,60 +14,49 @@ export type GlobalHeaderRightProps = {
   children?: React.ReactNode;
 };
 
+// 修改 AvatarName 组件
 export const AvatarName = () => {
-  const { initialState } = useModel('@@initialState');
-  const { currentUser } = initialState || {};
-  return <span className="anticon">{currentUser?.name}</span>;
+  // 可以从 localStorage 或其他地方获取用户名
+  const userName = localStorage.getItem('userName') || '用户';
+  return <span className="anticon">{userName}</span>;
 };
 
-const useStyles = createStyles(({ token }) => {
-  return {
-    action: {
-      display: 'flex',
-      height: '48px',
-      marginLeft: 'auto',
-      overflow: 'hidden',
-      alignItems: 'center',
-      padding: '0 8px',
-      cursor: 'pointer',
-      borderRadius: token.borderRadius,
-      '&:hover': {
-        backgroundColor: token.colorBgTextHover,
-      },
-    },
-  };
-});
-
 export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, children }) => {
-  /**
-   * 退出登录，并且将当前的 url 保存
-   */
   const loginOut = async () => {
-    await outLogin();
-    const { search, pathname } = window.location;
-    const urlParams = new URL(window.location.href).searchParams;
-    /** 此方法会跳转到 redirect 参数所在的位置 */
-    const redirect = urlParams.get('redirect');
-    // Note: There may be security issues, please note
-    if (window.location.pathname !== '/user/login' && !redirect) {
-      history.replace({
-        pathname: '/user/login',
-        search: stringify({
-          redirect: pathname + search,
-        }),
-      });
+    try {
+      await outLogin();
+    } catch (error) {
+      console.log('退出登录失败:', error);
+    } finally {
+      // 清除本地存储的用户信息
+      localStorage.removeItem('token');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userInfo');
+      
+      const { search, pathname } = window.location;
+      const urlParams = new URL(window.location.href).searchParams;
+      const redirect = urlParams.get('redirect');
+      if (window.location.pathname !== '/user/login' && !redirect) {
+        history.replace({
+          pathname: '/user/login',
+          search: stringify({
+            redirect: pathname + search,
+          }),
+        });
+      }
     }
   };
-  const { styles } = useStyles();
 
+  const { styles } = useStyles();
   const { initialState, setInitialState } = useModel('@@initialState');
 
   const onMenuClick = useCallback(
     (event: MenuInfo) => {
       const { key } = event;
       if (key === 'logout') {
+        // 清除全局状态
         flushSync(() => {
-          setInitialState((s) => ({ ...s, currentUser: undefined }));
+          setInitialState((s) => ({ ...s })); // 移除 currentUser
         });
         loginOut();
         return;
@@ -89,14 +78,19 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, childre
     </span>
   );
 
-  if (!initialState) {
+  // 简化用户信息获取
+  const userName = localStorage.getItem('userName');
+  
+  if (!userName) {
     return loading;
   }
 
-  const { currentUser } = initialState;
-
-  if (!currentUser || !currentUser.name) {
-    return loading;
+  if (!menu) {
+    return (
+      <span className={styles.action}>
+        <AvatarDropdown>{children}</AvatarDropdown>
+      </span>
+    );
   }
 
   const menuItems = [
@@ -136,3 +130,21 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, childre
     </HeaderDropdown>
   );
 };
+
+const useStyles = createStyles(({ token }) => {
+  return {
+    action: {
+      display: 'flex',
+      height: '48px',
+      marginLeft: 'auto',
+      overflow: 'hidden',
+      alignItems: 'center',
+      padding: '0 8px',
+      cursor: 'pointer',
+      borderRadius: token.borderRadius,
+      '&:hover': {
+        backgroundColor: token.colorBgTextHover,
+      },
+    },
+  };
+});

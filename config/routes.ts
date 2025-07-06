@@ -1,4 +1,4 @@
-﻿export default [
+export default [
   {
     path: '/user',
     layout: false,
@@ -19,28 +19,27 @@
   {
     path: '/system',
     name: 'system',
-    icon: 'setting',
+    icon: 'crown',
     access: 'canAdmin',
     routes: [
       {
-        path: '/system',
-        redirect: '/system/role',
-      },
-      {
         path: '/system/role',
         name: 'role',
+        access: 'canViewRole',
         component: './System/Role',
-
       },
       {
-        path: '/system/role/permission',  // 使用相对路径
-        name: 'permission',
+        path: '/system/permission',
+        name: 'permission', 
+        access: 'canViewPermission',
         component: './System/Permission',
+        //菜单栏不展示
         hideInMenu: true,
       },
       {
         path: '/system/account',
         name: 'account',
+        access: 'canViewAccount',
         component: './System/Account',
       },
     ],
@@ -48,51 +47,47 @@
   {
     path: '/production',
     name: 'production',
-    icon: 'tool',
+    icon: 'table',
+    access: 'canProduction',
     routes: [
-      {
-        path: '/production',
-        redirect: '/production/process',
-      },
       {
         path: '/production/process',
         name: 'process',
+        access: 'canViewProcess',
         component: './Production/Process',
       },
       {
         path: '/production/equipment',
         name: 'equipment',
+        access: 'canViewEquipment',
         component: './Production/Equipment',
-      },
-      {
-        path: '/production/equipment/overview',
-        name: 'equipment-overview',
-        component: './Production/EquipmentOverview',
       },
       {
         path: '/production/qrcode',
         name: 'qrcode',
+        access: 'canViewQRCode',
         component: './Production/QRCode',
       },
       {
         path: '/production/product',
         name: 'product',
+        access: 'canViewProduct',
         component: './Production/Product',
       },
       {
         path: '/production/info',
-        name: 'production-info',
+        name: 'productionInfo',
+        access: 'canViewProductionInfo',
         component: './Production/ProductionInfo',
       },
       {
         path: '/production/display',
         name: 'display',
+        access: 'canViewDisplay',
         component: './Production/Display',
       },
     ],
   },
-  
- 
   {
     path: '/',
     redirect: '/welcome',

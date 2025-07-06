@@ -10,17 +10,22 @@ import {
 import { Button, message, Popconfirm, Image } from 'antd';
 import type { UploadFile } from 'antd';
 import React, { useRef, useState } from 'react';
+import { getProductList, saveOrUpdateProduct, removeProduct } from '@/services/production/product';
 
 type ProductItem = {
-  id: string;
-  batch: string;
-  drawingNumber: string;
-  model: string;
+  id: number;
+  batchCode: string;
+  thumbCode: string;
+  size: string;
   trademark: string;
-  glaze: string;
-  trademarkImage?: string;
-  productImage?: string;
-  createTime: string;
+  colour: string;
+  productThumb?: string;
+  trademarkImage?: string; // 新增商标图片字段
+  operateId?: number;
+  operateName?: string;
+  remark?: string;
+  createTime?: string;
+  updateTime?: string;
 };
 
 const ProductManagement: React.FC = () => {
@@ -31,22 +36,30 @@ const ProductManagement: React.FC = () => {
 
   const handleCreate = async (values: any) => {
     try {
-      // 处理图片上传
-      const trademarkImage = values.trademarkImage?.[0]?.response?.url || values.trademarkImage?.[0]?.url;
-      const productImage = values.productImage?.[0]?.response?.url || values.productImage?.[0]?.url;
+      // 处理产品图片上传
+      const productThumb = values.productThumb?.[0]?.response?.url || values.productThumb?.[0]?.url;
+      // 处理商标图片上传
+      const trademark = values.trademark?.[0]?.response?.url || values.trademark?.[0]?.url;
       
-      const productData = {
-        ...values,
-        trademarkImage,
-        productImage,
-        createTime: new Date().toLocaleString(),
-      };
+      const response = await saveOrUpdateProduct({
+        batchCode: values.batchCode,
+        thumbCode: values.thumbCode,
+        size: values.size,
+        trademark,
+        colour: values.colour,
+        productThumb,
+        remark: values.remark,
+      });
       
-      console.log('创建产品:', productData);
-      message.success('产品创建成功');
-      handleModalOpen(false);
-      actionRef.current?.reload();
-      return true;
+      if (response.success) {
+        message.success('产品创建成功');
+        handleModalOpen(false);
+        actionRef.current?.reload();
+        return true;
+      } else {
+        message.error(response.message || '创建失败');
+        return false;
+      }
     } catch (error) {
       message.error('创建失败，请重试');
       return false;
@@ -55,23 +68,32 @@ const ProductManagement: React.FC = () => {
 
   const handleUpdate = async (values: any) => {
     try {
-      // 处理图片上传
-      const trademarkImage = values.trademarkImage?.[0]?.response?.url || values.trademarkImage?.[0]?.url || currentRecord?.trademarkImage;
-      const productImage = values.productImage?.[0]?.response?.url || values.productImage?.[0]?.url || currentRecord?.productImage;
+      // 处理产品图片上传
+      const productThumb = values.productThumb?.[0]?.response?.url || values.productThumb?.[0]?.url || currentRecord?.productThumb;
+      // 处理商标图片上传
+      const trademark = values.trademark?.[0]?.response?.url || values.trademark?.[0]?.url || currentRecord?.trademark;
       
-      const productData = {
-        ...currentRecord,
-        ...values,
-        trademarkImage,
-        productImage,
-      };
+      const response = await saveOrUpdateProduct({
+        id: currentRecord?.id,
+        batchCode: values.batchCode,
+        thumbCode: values.thumbCode,
+        size: values.size,
+        trademark,
+        colour: values.colour,
+        productThumb,
+        remark: values.remark,
+      });
       
-      console.log('更新产品:', productData);
-      message.success('产品更新成功');
-      setEditModalOpen(false);
-      setCurrentRecord(undefined);
-      actionRef.current?.reload();
-      return true;
+      if (response.success) {
+        message.success('产品更新成功');
+        setEditModalOpen(false);
+        setCurrentRecord(undefined);
+        actionRef.current?.reload();
+        return true;
+      } else {
+        message.error(response.message || '更新失败');
+        return false;
+      }
     } catch (error) {
       message.error('更新失败，请重试');
       return false;
@@ -80,9 +102,13 @@ const ProductManagement: React.FC = () => {
 
   const handleDelete = async (record: ProductItem) => {
     try {
-      console.log('删除产品:', record.id);
-      message.success('产品删除成功');
-      actionRef.current?.reload();
+      const response = await removeProduct(record.id);
+      if (response.success) {
+        message.success('产品删除成功');
+        actionRef.current?.reload();
+      } else {
+        message.error(response.message || '删除失败');
+      }
     } catch (error) {
       message.error('删除失败，请重试');
     }
@@ -118,6 +144,34 @@ const ProductManagement: React.FC = () => {
     });
   };
 
+  // 真实图片上传处理
+  const handleRealUpload = async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      const response = await fetch('/api/index/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        return {
+          url: result.data.url,
+          status: 'done',
+          name: file.name,
+        };
+      } else {
+        throw new Error(result.message || '上传失败');
+      }
+    } catch (error) {
+      console.error('上传失败:', error);
+      throw error;
+    }
+  };
+
   const columns: ProColumns<ProductItem>[] = [
     {
       title: '序号',
@@ -128,19 +182,19 @@ const ProductManagement: React.FC = () => {
     },
     {
       title: '批次',
-      dataIndex: 'batch',
+      dataIndex: 'batchCode',
       ellipsis: true,
       width: 120,
     },
     {
       title: '图号',
-      dataIndex: 'drawingNumber',
+      dataIndex: 'thumbCode',
       ellipsis: true,
       width: 120,
     },
     {
       title: '型号',
-      dataIndex: 'model',
+      dataIndex: 'size',
       ellipsis: true,
       width: 120,
     },
@@ -151,26 +205,46 @@ const ProductManagement: React.FC = () => {
       width: 100,
       render: (_, record) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {record.trademarkImage && (
+          {record.trademark && (
             <Image
               width={30}
               height={30}
-              src={record.trademarkImage}
+              src={record.trademark}
               style={{ objectFit: 'cover', borderRadius: 4 }}
               preview={{
                 mask: '预览',
               }}
             />
           )}
-          <span>{record.trademark}</span>
         </div>
       ),
     },
     {
       title: '釉色',
-      dataIndex: 'glaze',
+      dataIndex: 'colour',
       ellipsis: true,
       width: 100,
+    },
+    {
+      title: '操作人',
+      dataIndex: 'operateName',
+      search: false,
+      ellipsis: true,
+      width: 100,
+    },
+    {
+      title: '备注',
+      dataIndex: 'remark',
+      search: false,
+      ellipsis: true,
+      width: 120,
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createTime',
+      search: false,
+      valueType: 'dateTime',
+      width: 150,
     },
     {
       title: '操作',
@@ -190,7 +264,7 @@ const ProductManagement: React.FC = () => {
         <Popconfirm
           key="delete"
           title="确认删除"
-          description="确定要删除这个产品吗？删除后无法恢复。"
+          description="确定要删除这个产品吗？"
           onConfirm={() => handleDelete(record)}
           okText="确认"
           cancelText="取消"
@@ -221,48 +295,40 @@ const ProductManagement: React.FC = () => {
             <PlusOutlined /> 新建产品
           </Button>,
         ]}
-        request={async () => {
-          // 模拟数据
-          const mockData: ProductItem[] = [
-            {
-              id: '1',
-              batch: 'B202401001',
-              drawingNumber: 'DWG-001',
-              model: 'SM-A1-001',
-              trademark: '品牌A',
-              glaze: '亮光白',
-              trademarkImage: 'https://via.placeholder.com/100x100?text=Logo1',
-              productImage: 'https://via.placeholder.com/200x200?text=Product1',
-              createTime: '2024-01-01 10:00:00',
-            },
-            {
-              id: '2',
-              batch: 'B202401002',
-              drawingNumber: 'DWG-002',
-              model: 'TB-B2-002',
-              trademark: '品牌B',
-              glaze: '哑光黑',
-              trademarkImage: 'https://via.placeholder.com/100x100?text=Logo2',
-              productImage: 'https://via.placeholder.com/200x200?text=Product2',
-              createTime: '2024-01-02 14:30:00',
-            },
-            {
-              id: '3',
-              batch: 'B202401003',
-              drawingNumber: 'DWG-003',
-              model: 'LC-C3-003',
-              trademark: '品牌C',
-              glaze: '珠光蓝',
-              trademarkImage: 'https://via.placeholder.com/100x100?text=Logo3',
-              productImage: 'https://via.placeholder.com/200x200?text=Product3',
-              createTime: '2024-01-03 09:15:00',
-            },
-          ];
-          return {
-            data: mockData,
-            success: true,
-            total: mockData.length,
-          };
+        request={async (params) => {
+          try {
+            const response = await getProductList({
+              currPage: params.current || 1,
+              pageSize: params.pageSize || 10,
+              batchCode: params.batchCode,
+              thumbCode: params.thumbCode,
+              size: params.size,
+              trademark: params.trademark,
+              colour: params.colour,
+            });
+            
+            if (response.success && response.data) {
+              return {
+                data: Array.isArray(response.data.records) ? response.data.records : [],
+                success: true,
+                total: response.data.total || 0,
+              };
+            } else {
+              console.error('API返回错误:', response.message);
+              return {
+                data: [],
+                success: false,
+                total: 0,
+              };
+            }
+          } catch (error) {
+            console.error('请求失败:', error);
+            return {
+              data: [],
+              success: false,
+              total: 0,
+            };
+          }
         }}
         columns={columns}
         pagination={{
@@ -284,57 +350,35 @@ const ProductManagement: React.FC = () => {
       >
         <ProFormText
           rules={[{ required: true, message: '型号为必填项' }]}
-          name="model"
+          name="size"
           label="型号"
           placeholder="请输入产品型号"
         />
         <ProFormText
           rules={[{ required: true, message: '图号为必填项' }]}
-          name="drawingNumber"
+          name="thumbCode"
           label="图号"
           placeholder="请输入产品图号"
         />
         <ProFormText
           rules={[{ required: true, message: '批次为必填项' }]}
-          name="batch"
+          name="batchCode"
           label="批次"
           placeholder="请输入产品批次"
         />
         <ProFormText
           rules={[{ required: true, message: '釉色为必填项' }]}
-          name="glaze"
+          name="colour"
           label="釉色"
           placeholder="请输入釉色"
         />
         <ProFormText
-          rules={[{ required: true, message: '商标为必填项' }]}
-          name="trademark"
-          label="商标"
-          placeholder="请输入商标名称"
+          name="remark"
+          label="备注"
+          placeholder="请输入备注"
         />
         <ProFormUploadButton
-          name="trademarkImage"
-          label="商标图片"
-          max={1}
-          fieldProps={{
-            name: 'file',
-            listType: 'picture-card',
-            beforeUpload,
-            customRequest: ({ file, onSuccess, onError }) => {
-              handleUpload(file as File)
-                .then((response) => {
-                  onSuccess?.(response);
-                })
-                .catch((error) => {
-                  onError?.(error);
-                });
-            },
-          }}
-          rules={[{ required: true, message: '请上传商标图片' }]}
-          extra="支持 JPG、PNG 格式，文件大小不超过 2MB"
-        />
-        <ProFormUploadButton
-          name="productImage"
+          name="productThumb"
           label="产品图片"
           max={1}
           fieldProps={{
@@ -342,7 +386,7 @@ const ProductManagement: React.FC = () => {
             listType: 'picture-card',
             beforeUpload,
             customRequest: ({ file, onSuccess, onError }) => {
-              handleUpload(file as File)
+              handleRealUpload(file as File)
                 .then((response) => {
                   onSuccess?.(response);
                 })
@@ -351,7 +395,26 @@ const ProductManagement: React.FC = () => {
                 });
             },
           }}
-          rules={[{ required: true, message: '请上传产品图片' }]}
+          extra="支持 JPG、PNG 格式，文件大小不超过 2MB"
+        />
+        <ProFormUploadButton
+          name="trademark"
+          label="商标图片"
+          max={1}
+          fieldProps={{
+            name: 'file',
+            listType: 'picture-card',
+            beforeUpload,
+            customRequest: ({ file, onSuccess, onError }) => {
+              handleRealUpload(file as File)
+                .then((response) => {
+                  onSuccess?.(response);
+                })
+                .catch((error) => {
+                  onError?.(error);
+                });
+            },
+          }}
           extra="支持 JPG、PNG 格式，文件大小不超过 2MB"
         />
       </ModalForm>
@@ -365,17 +428,17 @@ const ProductManagement: React.FC = () => {
         onFinish={handleUpdate}
         initialValues={{
           ...currentRecord,
-          trademarkImage: currentRecord?.trademarkImage ? [{
+          productThumb: currentRecord?.productThumb ? [{
             uid: '-1',
-            name: 'trademark.jpg',
-            status: 'done' as const,
-            url: currentRecord.trademarkImage,
-          }] : [],
-          productImage: currentRecord?.productImage ? [{
-            uid: '-2',
             name: 'product.jpg',
             status: 'done' as const,
-            url: currentRecord.productImage,
+            url: currentRecord.productThumb,
+          }] : [],
+          trademark: currentRecord?.trademark ? [{
+            uid: '-2',
+            name: 'trademark.jpg',
+            status: 'done' as const,
+            url: currentRecord.trademark,
           }] : [],
         }}
         layout="horizontal"
@@ -384,57 +447,36 @@ const ProductManagement: React.FC = () => {
       >
         <ProFormText
           rules={[{ required: true, message: '型号为必填项' }]}
-          name="model"
+          name="size"
           label="型号"
           placeholder="请输入产品型号"
         />
         <ProFormText
           rules={[{ required: true, message: '图号为必填项' }]}
-          name="drawingNumber"
+          name="thumbCode"
           label="图号"
           placeholder="请输入产品图号"
         />
         <ProFormText
           rules={[{ required: true, message: '批次为必填项' }]}
-          name="batch"
+          name="batchCode"
           label="批次"
           placeholder="请输入产品批次"
         />
         <ProFormText
           rules={[{ required: true, message: '釉色为必填项' }]}
-          name="glaze"
+          name="colour"
           label="釉色"
           placeholder="请输入釉色"
         />
-        <ProFormText
-          rules={[{ required: true, message: '商标为必填项' }]}
+        {/* <ProFormText
+          rules={[{ required: true, message: '商标名称为必填项' }]}
           name="trademark"
-          label="商标"
+          label="商标名称"
           placeholder="请输入商标名称"
-        />
+        /> */}
         <ProFormUploadButton
-          name="trademarkImage"
-          label="商标图片"
-          max={1}
-          fieldProps={{
-            name: 'file',
-            listType: 'picture-card',
-            beforeUpload,
-            customRequest: ({ file, onSuccess, onError }) => {
-              handleUpload(file as File)
-                .then((response) => {
-                  onSuccess?.(response);
-                })
-                .catch((error) => {
-                  onError?.(error);
-                });
-            },
-          }}
-          rules={[{ required: true, message: '请上传商标图片' }]}
-          extra="支持 JPG、PNG 格式，文件大小不超过 2MB"
-        />
-        <ProFormUploadButton
-          name="productImage"
+          name="productThumb"
           label="产品图片"
           max={1}
           fieldProps={{
@@ -442,7 +484,7 @@ const ProductManagement: React.FC = () => {
             listType: 'picture-card',
             beforeUpload,
             customRequest: ({ file, onSuccess, onError }) => {
-              handleUpload(file as File)
+              handleRealUpload(file as File)
                 .then((response) => {
                   onSuccess?.(response);
                 })
@@ -451,7 +493,26 @@ const ProductManagement: React.FC = () => {
                 });
             },
           }}
-          rules={[{ required: true, message: '请上传产品图片' }]}
+          extra="支持 JPG、PNG 格式，文件大小不超过 2MB"
+        />
+        <ProFormUploadButton
+          name="trademark"
+          label="商标图片"
+          max={1}
+          fieldProps={{
+            name: 'file',
+            listType: 'picture-card',
+            beforeUpload,
+            customRequest: ({ file, onSuccess, onError }) => {
+              handleRealUpload(file as File)
+                .then((response) => {
+                  onSuccess?.(response);
+                })
+                .catch((error) => {
+                  onError?.(error);
+                });
+            },
+          }}
           extra="支持 JPG、PNG 格式，文件大小不超过 2MB"
         />
       </ModalForm>

@@ -2,32 +2,38 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
-/** 获取当前的用户 GET /api/currentUser */
-export async function currentUser(options?: { [key: string]: any }) {
-  return request<{
-    data: API.CurrentUser;
-  }>('/api/currentUser', {
-    method: 'GET',
-    ...(options || {}),
-  });
-}
+// 删除以下代码（第5-12行）：
+// /** 获取当前的用户 GET /api/currentUser */
+// export async function currentUser(options?: { [key: string]: any }) {
+//   return request<{
+//     data: API.CurrentUser;
+//   }>('/api/currentUser', {
+//     method: 'GET',
+//     ...(options || {}),
+//   });
+// }
 
-/** 退出登录接口 POST /api/login/outLogin */
+/** 退出登录接口 POST /api/logout */
 export async function outLogin(options?: { [key: string]: any }) {
-  return request<Record<string, any>>('/api/login/outLogin', {
+  return request<Record<string, any>>('/api/logout', {
     method: 'POST',
     ...(options || {}),
   });
 }
 
-/** 登录接口 POST /api/login/account */
+/** 登录接口 POST /api/login */
 export async function login(body: API.LoginParams, options?: { [key: string]: any }) {
-  return request<API.LoginResult>('/api/login/account', {
+  // 手动转换为表单数据格式
+  const formData = new URLSearchParams();
+  formData.append('userName', body.userName);
+  formData.append('passWord', body.passWord);
+  
+  return request<API.LoginResult>('/api/login', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
     },
-    data: body,
+    data: formData.toString(),
     ...(options || {}),
   });
 }
@@ -92,3 +98,4 @@ export async function removeRule(options?: { [key: string]: any }) {
     }
   });
 }
+
