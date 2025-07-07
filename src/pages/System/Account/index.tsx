@@ -12,7 +12,7 @@ import { FormattedMessage, useIntl } from '@umijs/max';
 import { Button, Drawer, message, Switch, Tag } from 'antd';
 import React, { useRef, useState } from 'react';
 import { getAccountList, addAccount, updateAccount, removeAccount, batchRemoveAccount } from '@/services/system/account';
-import { getAllRoles } from '@/services/system/role';
+import { getAllRolesWithPagination } from '@/services/system/role';
 
 const AccountList: React.FC = () => {
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
@@ -27,9 +27,9 @@ const AccountList: React.FC = () => {
   // 获取角色选项
   const fetchRoleOptions = async () => {
     try {
-      const response = await getAllRoles();
-      if (response.success && response.data) {
-        const options = response.data.map((role: API.RoleItem) => ({
+      const response = await getAllRolesWithPagination();
+      if (response.success && response.data && response.data.records) {
+        const options = response.data.records.map((role: API.RoleItem) => ({
           label: role.roleName || '',
           value: role.id || 0,
         }));
@@ -46,7 +46,7 @@ const AccountList: React.FC = () => {
 
   const columns: ProColumns<API.AccountItem>[] = [
     {
-      title: '成员账户',
+      title: '账号',
       dataIndex: 'mobile',
       tip: '账户手机号',
       render: (dom, entity) => {
@@ -63,12 +63,12 @@ const AccountList: React.FC = () => {
       },
     },
     {
-      title: '姓名',
+      title: '成员姓名',
       dataIndex: 'name',
       valueType: 'text',
     },
     {
-      title: '所属权限（角色）',
+      title: '授予权限（角色）',
       dataIndex: 'authVOList',
       hideInSearch: true,
       render: (_, record) => {
@@ -85,6 +85,12 @@ const AccountList: React.FC = () => {
           </>
         );
       },
+    },
+    {
+      title: '备注信息',
+      dataIndex: 'remark',
+      valueType: 'text',
+      hideInSearch: true,
     },
     {
       title: '添加时间',
@@ -128,15 +134,15 @@ const AccountList: React.FC = () => {
       dataIndex: 'option',
       valueType: 'option',
       render: (_, record) => [
-        <a
-          key="config"
-          onClick={() => {
-            handleUpdateModalOpen(true);
-            setCurrentRow(record);
-          }}
-        >
-          <FormattedMessage id="pages.searchTable.config" defaultMessage="编辑" />
-        </a>,
+        // <a
+        //   key="config"
+        //   onClick={() => {
+        //     handleUpdateModalOpen(true);
+        //     setCurrentRow(record);
+        //   }}
+        // >
+        //   <FormattedMessage id="pages.searchTable.config" defaultMessage="编辑" />
+        // </a>,
         <a
           key="delete"
           onClick={async () => {
@@ -253,6 +259,7 @@ const AccountList: React.FC = () => {
         </div>
       )}
       
+      {/* 新建账户表单 */}
       <ModalForm
         title={intl.formatMessage({
           id: 'pages.searchTable.createForm.newAccount',
@@ -280,64 +287,70 @@ const AccountList: React.FC = () => {
           rules={[
             {
               required: true,
-              message: '姓名为必填项',
-            },
-          ]}
-          label="姓名"
-          name="name"
-        />
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: '手机号为必填项',
+              message: '账号为必填项',
             },
             {
               pattern: /^1[3-9]\d{9}$/,
               message: '请输入正确的手机号格式',
             },
           ]}
-          label="手机号"
+          label="账号"
           name="mobile"
+          placeholder="请输入手机号作为账号"
         />
         <ProFormText
           rules={[
             {
               required: true,
-              message: '密码为必填项',
+              message: '成员姓名为必填项',
             },
           ]}
-          label="密码"
-          name="password"
-          fieldProps={{
-            type: 'password',
-          }}
-        />
-        <ProFormText
-          label="工号"
-          name="workNumber"
-        />
-        <ProFormText
-          label="岗位"
-          name="post"
-        />
-        <ProFormText
-          label="部门名称"
-          name="dcDepartmentName"
-        />
-        <ProFormText
-          label="车间名称"
-          name="dcProductLineName"
+          label="成员姓名"
+          name="name"
+          placeholder="请输入成员姓名"
         />
         <ProFormSelect
+          rules={[
+            {
+              required: true,
+              message: '授予权限为必填项',
+            },
+          ]}
           name="roleList"
-          label="分配角色"
+          label="授予权限(角色)"
           mode="multiple"
           options={roleOptions}
           placeholder="请选择角色"
         />
+        <ProFormText
+          rules={[
+            {
+              required: true,
+              message: '登录密码为必填项',
+            },
+            {
+              min: 6,
+              message: '密码长度不能少于6位',
+            },
+          ]}
+          label="登录密码"
+          name="password"
+          fieldProps={{
+            type: 'password',
+          }}
+          placeholder="请输入登录密码"
+        />
+        <ProFormTextArea
+          label="备注信息"
+          name="remark"
+          placeholder="请输入备注信息（可选）"
+          fieldProps={{
+            rows: 3,
+          }}
+        />
       </ModalForm>
       
+      {/* 编辑账户表单 */}
       <ModalForm
         title={intl.formatMessage({
           id: 'pages.searchTable.updateForm.accountConfig',
@@ -370,56 +383,56 @@ const AccountList: React.FC = () => {
           rules={[
             {
               required: true,
-              message: '姓名为必填项',
-            },
-          ]}
-          label="姓名"
-          name="name"
-        />
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: '手机号为必填项',
+              message: '账号为必填项',
             },
             {
               pattern: /^1[3-9]\d{9}$/,
               message: '请输入正确的手机号格式',
             },
           ]}
-          label="手机号"
+          label="账号"
           name="mobile"
+          placeholder="请输入手机号作为账号"
         />
         <ProFormText
-          label="密码"
+          rules={[
+            {
+              required: true,
+              message: '成员姓名为必填项',
+            },
+          ]}
+          label="成员姓名"
+          name="name"
+          placeholder="请输入成员姓名"
+        />
+        <ProFormSelect
+          rules={[
+            {
+              required: true,
+              message: '授予权限为必填项',
+            },
+          ]}
+          name="roleList"
+          label="授予权限(角色)"
+          mode="multiple"
+          options={roleOptions}
+          placeholder="请选择角色"
+        />
+        <ProFormText
+          label="登录密码"
           name="password"
           fieldProps={{
             type: 'password',
           }}
           placeholder="不修改请留空"
         />
-        <ProFormText
-          label="工号"
-          name="workNumber"
-        />
-        <ProFormText
-          label="岗位"
-          name="post"
-        />
-        <ProFormText
-          label="部门名称"
-          name="dcDepartmentName"
-        />
-        <ProFormText
-          label="车间名称"
-          name="dcProductLineName"
-        />
-        <ProFormSelect
-          name="roleList"
-          label="分配角色"
-          mode="multiple"
-          options={roleOptions}
-          placeholder="请选择角色"
+        <ProFormTextArea
+          label="备注信息"
+          name="remark"
+          placeholder="请输入备注信息（可选）"
+          fieldProps={{
+            rows: 3,
+          }}
         />
       </ModalForm>
       

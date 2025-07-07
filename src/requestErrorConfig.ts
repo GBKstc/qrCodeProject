@@ -1,6 +1,7 @@
 ﻿import type { RequestOptions } from '@@/plugin-request/request';
 import type { RequestConfig } from '@umijs/max';
 import { message, notification } from 'antd';
+import { history } from '@umijs/max';
 
 // 错误处理方案： 错误类型
 enum ErrorShowType {
@@ -20,6 +21,7 @@ interface ResponseStructure {
   errorCode?: number;
   errorMessage?: string;
   showType?: ErrorShowType;
+  error?: string;
 }
 
 export const errorConfig: RequestConfig = {
@@ -27,6 +29,17 @@ export const errorConfig: RequestConfig = {
     // 错误抛出
     errorThrower: (res) => {
       const response = res as unknown as ResponseStructure;
+      
+      // 检查是否为 Unauthorized 错误
+      if (response.error === 'Unauthorized' || response.message === 'Unauthorized' || response.code === 401) {
+        // 清除本地存储的登录信息
+        localStorage.removeItem('token');
+        localStorage.removeItem('userInfo');
+        // 跳转到登录页面
+        history.push('/user/login');
+        message.error('登录已过期，请重新登录');
+        return;
+      }
       
       // 适配不同的后端返回格式
       // 如果有 success 字段，以 success 为准
@@ -59,6 +72,18 @@ export const errorConfig: RequestConfig = {
     // 错误接收及处理
     errorHandler: (error: any, opts: any) => {
       if (opts?.skipErrorHandler) throw error;
+      
+      // 检查 HTTP 状态码 401 (Unauthorized)
+      if (error.response?.status === 401) {
+        // 清除本地存储的登录信息
+        localStorage.removeItem('token');
+        localStorage.removeItem('userInfo');
+        // 跳转到登录页面
+        history.push('/user/login');
+        message.error('登录已过期，请重新登录');
+        return;
+      }
+      
       // 我们的 errorThrower 抛出的错误。
       if (error.name === 'BizError') {
         const errorInfo: ResponseStructure | undefined = error.info;
@@ -117,6 +142,17 @@ export const errorConfig: RequestConfig = {
     (response) => {
       // 拦截响应数据，进行个性化处理
       const { data } = response as unknown as ResponseStructure;
+
+      // 检查响应数据中的 Unauthorized 错误
+      if (data?.error === 'Unauthorized' || data?.message === 'Unauthorized') {
+        // 清除本地存储的登录信息
+        localStorage.removeItem('token');
+        localStorage.removeItem('userInfo');
+        // 跳转到登录页面
+        history.push('/user/login');
+        message.error('登录已过期，请重新登录');
+        return response;
+      }
 
       if (data?.success === false) {
         message.error('请求失败！');

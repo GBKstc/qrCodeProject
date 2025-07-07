@@ -14,6 +14,18 @@ export async function getRoleList(
   });
 }
 
+/** 获取大量角色列表（分页接口获取999条） GET /api/dcPlatRole/pageList */
+export async function getAllRolesWithPagination(options?: { [key: string]: any }) {
+  return request<API.RoleListResult>('/api/dcPlatRole/pageList', {
+    method: 'GET',
+    params: {
+      currPage: 1,
+      pageSize: 999,
+    },
+    ...(options || {}),
+  });
+}
+
 /** 新增角色 POST /api/dcPlatRole/saveOrUpdate */
 export async function addRole(body: API.RoleSaveParam, options?: { [key: string]: any }) {
   return request<API.SystemCommonResponse>('/api/dcPlatRole/saveOrUpdate', {

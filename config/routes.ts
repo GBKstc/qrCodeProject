@@ -29,7 +29,7 @@ export default [
         component: './System/Role',
       },
       {
-        path: '/system/permission',
+        path: '/system/role/permission',
         name: 'permission', 
         access: 'canViewPermission',
         component: './System/Permission',

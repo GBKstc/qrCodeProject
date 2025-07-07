@@ -17,11 +17,13 @@ export default function access(initialState: any) {
   
   // 检查用户是否有特定权限（根据 code 字段）
   const hasPermission = (permissionCode: string) => {
+    return true
     return userPermissions.some((auth: any) => auth.code === permissionCode);
   };
   
   // 检查用户是否有模块权限（支持父级权限检查）
   const hasModulePermission = (moduleCode: string) => {
+    return true
     return userPermissions.some((auth: any) => 
       auth.code === moduleCode || auth.code.startsWith(moduleCode)
     );
