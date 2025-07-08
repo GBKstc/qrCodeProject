@@ -37,19 +37,32 @@ const ProductManagement: React.FC = () => {
   const handleCreate = async (values: any) => {
     try {
       // 处理产品图片上传
-      const productThumb = values.productThumb?.[0]?.response?.url || values.productThumb?.[0]?.url;
-      // 处理商标图片上传
-      const trademark = values.trademark?.[0]?.response?.url || values.trademark?.[0]?.url;
+      const productThumb = values.productThumb?.[0]?.response?.data?.url || 
+                        values.productThumb?.[0]?.response?.url || 
+                        values.productThumb?.[0]?.url || '';
       
-      const response = await saveOrUpdateProduct({
-        batchCode: values.batchCode,
-        thumbCode: values.thumbCode,
-        size: values.size,
-        trademark,
-        colour: values.colour,
-        productThumb,
-        remark: values.remark,
-      });
+      // 处理商标图片上传 - 注意这里应该是商标图片，不是商标名称
+      const trademarkImage = values.trademark?.[0]?.response?.data?.url || 
+                          values.trademark?.[0]?.response?.url || 
+                          values.trademark?.[0]?.url || '';
+      
+      // 获取当前用户信息（这里需要根据实际的用户状态管理来获取）
+      // const currentUser = getCurrentUser(); // 需要实现获取当前用户的方法
+      
+      const requestData = {
+        batchCode: values.batchCode || '',
+        colour: values.colour || '',
+        // id: 0, // 新增时不需要传id
+        operateId: 0, // 需要传入当前操作用户的ID
+        operateName: '', // 需要传入当前操作用户的姓名
+        productThumb: productThumb,
+        remark: values.remark || '',
+        size: values.size || '',
+        thumbCode: values.thumbCode || '',
+        trademark: trademarkImage, // 这里存储的是商标图片URL
+      };
+      
+      const response = await saveOrUpdateProduct(requestData);
       
       if (response.success) {
         message.success('产品创建成功');
@@ -57,10 +70,15 @@ const ProductManagement: React.FC = () => {
         actionRef.current?.reload();
         return true;
       } else {
-        message.error(response.message || '创建失败');
+        // 根据新的响应格式处理错误
+        const errorMsg = response.message || 
+                      response.reason?.errMsg || 
+                      '创建失败';
+        message.error(errorMsg);
         return false;
       }
     } catch (error) {
+      console.error('创建产品失败:', error);
       message.error('创建失败，请重试');
       return false;
     }
@@ -68,21 +86,61 @@ const ProductManagement: React.FC = () => {
 
   const handleUpdate = async (values: any) => {
     try {
-      // 处理产品图片上传
-      const productThumb = values.productThumb?.[0]?.response?.url || values.productThumb?.[0]?.url || currentRecord?.productThumb;
-      // 处理商标图片上传
-      const trademark = values.trademark?.[0]?.response?.url || values.trademark?.[0]?.url || currentRecord?.trademark;
+      if (!currentRecord?.id) {
+        message.error('缺少产品ID，无法更新');
+        return false;
+      }
+      console.log(values,"values")
+      // 处理产品图片上传 - 修复逻辑
+      let productThumb = '';
+      if (values.productThumb && values.productThumb.length > 0) {
+        const file = values.productThumb[0];
+        // 新上传的文件
+        if (file.response) {
+          productThumb = file.response.data?.url || file.response.url || '';
+        }
+        // 现有的文件
+        else if (file.url) {
+          productThumb = file.url;
+        }
+      } else {
+        // 如果没有文件，保持原有的图片
+        productThumb = currentRecord?.productThumb || '';
+      }
       
-      const response = await saveOrUpdateProduct({
-        id: currentRecord?.id,
-        batchCode: values.batchCode,
-        thumbCode: values.thumbCode,
-        size: values.size,
-        trademark,
-        colour: values.colour,
-        productThumb,
-        remark: values.remark,
-      });
+      // 处理商标图片上传 - 修复逻辑
+      let trademark = '';
+      if (values.trademark && values.trademark.length > 0) {
+        const file = values.trademark[0];
+        // 新上传的文件
+        if (file.response) {
+          trademark = file.response.data?.url || file.response.url || '';
+        }
+        // 现有的文件
+        else if (file.url) {
+          trademark = file.url;
+        }
+      } else {
+        // 如果没有文件，保持原有的图片
+        trademark = currentRecord?.trademark || '';
+      }
+      
+      const requestData = {
+        id: currentRecord.id,
+        batchCode: values.batchCode || '',
+        colour: values.colour || '',
+        operateId: currentRecord.operateId || 0,
+        operateName: currentRecord.operateName || '',
+        productThumb: productThumb,
+        remark: values.remark || '',
+        size: values.size || '',
+        thumbCode: values.thumbCode || '',
+        trademark: trademark,
+      };
+      
+      console.log('更新产品数据:', requestData); // 添加调试日志
+      
+      const response = await saveOrUpdateProduct(requestData);
       
       if (response.success) {
         message.success('产品更新成功');
@@ -91,10 +149,15 @@ const ProductManagement: React.FC = () => {
         actionRef.current?.reload();
         return true;
       } else {
-        message.error(response.message || '更新失败');
+        // 根据新的响应格式处理错误
+        const errorMsg = response.message || 
+                      response.reason?.errMsg || 
+                      '更新失败';
+        message.error(errorMsg);
         return false;
       }
     } catch (error) {
+      console.error('更新产品失败:', error);
       message.error('更新失败，请重试');
       return false;
     }
@@ -146,20 +209,33 @@ const ProductManagement: React.FC = () => {
 
   // 真实图片上传处理
   const handleRealUpload = async (file: File) => {
+    // 文件验证
+    if (file.size > 10 * 1024 * 1024) {
+      throw new Error('文件大小不能超过10MB');
+    }
+    
+    // 创建 FormData 对象
     const formData = new FormData();
     formData.append('file', file);
     
     try {
+      // 使用 fetch API 发送 POST 请求
       const response = await fetch('/api/index/upload', {
         method: 'POST',
-        body: formData,
+        body: formData,  // 直接传递 FormData 对象
       });
+      
+      // 检查 HTTP 状态码
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       
       const result = await response.json();
       
+      // 根据业务逻辑处理响应
       if (result.success) {
         return {
-          url: result.data.url,
+          url: result.data,
           status: 'done',
           name: file.name,
         };
@@ -388,14 +464,22 @@ const ProductManagement: React.FC = () => {
             customRequest: ({ file, onSuccess, onError }) => {
               handleRealUpload(file as File)
                 .then((response) => {
-                  onSuccess?.(response);
+                  // 构造符合 Ant Design Upload 组件期望的文件对象
+                  const fileObj = {
+                    uid: file.uid || Date.now().toString(),
+                    name: file.name,
+                    status: 'done',
+                    url: response.data,
+                    response: response, // 保留原始响应
+                  };
+                  onSuccess?.(fileObj, file);
                 })
                 .catch((error) => {
                   onError?.(error);
                 });
             },
           }}
-          extra="支持 JPG、PNG 格式，文件大小不超过 2MB"
+          extra="支持 JPG、PNG 格式，文件大小不超过 10MB"
         />
         <ProFormUploadButton
           name="trademark"
@@ -408,14 +492,23 @@ const ProductManagement: React.FC = () => {
             customRequest: ({ file, onSuccess, onError }) => {
               handleRealUpload(file as File)
                 .then((response) => {
-                  onSuccess?.(response);
+                  console.log(response,'response')
+                  // 构造符合 Ant Design Upload 组件期望的文件对象
+                  const fileObj = {
+                    uid: file.uid || Date.now().toString(),
+                    name: file.name,
+                    status: 'done',
+                    url: response.data,
+                    response: response, // 保留原始响应
+                  };
+                  onSuccess?.(fileObj, file);
                 })
                 .catch((error) => {
                   onError?.(error);
                 });
             },
           }}
-          extra="支持 JPG、PNG 格式，文件大小不超过 2MB"
+          extra="支持 JPG、PNG 格式，文件大小不超过 10MB"
         />
       </ModalForm>
 
@@ -424,10 +517,21 @@ const ProductManagement: React.FC = () => {
         title="编辑产品"
         width="600px"
         open={editModalOpen}
-        onOpenChange={setEditModalOpen}
+        onOpenChange={(open) => {
+          setEditModalOpen(open);
+          if (!open) {
+            setCurrentRecord(undefined); // 关闭时清空当前记录
+          }
+        }}
         onFinish={handleUpdate}
+        // 使用 key 强制重新渲染表单
+        key={currentRecord?.id || 'new'}
         initialValues={{
-          ...currentRecord,
+          size: currentRecord?.size || '',
+          thumbCode: currentRecord?.thumbCode || '',
+          batchCode: currentRecord?.batchCode || '',
+          colour: currentRecord?.colour || '',
+          remark: currentRecord?.remark || '',
           productThumb: currentRecord?.productThumb ? [{
             uid: '-1',
             name: 'product.jpg',
@@ -469,12 +573,11 @@ const ProductManagement: React.FC = () => {
           label="釉色"
           placeholder="请输入釉色"
         />
-        {/* <ProFormText
-          rules={[{ required: true, message: '商标名称为必填项' }]}
-          name="trademark"
-          label="商标名称"
-          placeholder="请输入商标名称"
-        /> */}
+        <ProFormText
+          name="remark"
+          label="备注"
+          placeholder="请输入备注"
+        />
         <ProFormUploadButton
           name="productThumb"
           label="产品图片"
@@ -486,7 +589,16 @@ const ProductManagement: React.FC = () => {
             customRequest: ({ file, onSuccess, onError }) => {
               handleRealUpload(file as File)
                 .then((response) => {
-                  onSuccess?.(response);
+                  // 构造符合 Ant Design Upload 组件期望的文件对象
+                  console.log(response,'response')
+                  const fileObj = {
+                    uid: file.uid || Date.now().toString(),
+                    name: file.name,
+                    status: 'done',
+                    url: response.url, // 这是关键：设置图片URL
+                    response: response,
+                  };
+                  onSuccess?.(fileObj, file);
                 })
                 .catch((error) => {
                   onError?.(error);
@@ -506,7 +618,15 @@ const ProductManagement: React.FC = () => {
             customRequest: ({ file, onSuccess, onError }) => {
               handleRealUpload(file as File)
                 .then((response) => {
-                  onSuccess?.(response);
+                  // 构造符合 Ant Design Upload 组件期望的文件对象
+                  const fileObj = {
+                    uid: file.uid || Date.now().toString(),
+                    name: file.name,
+                    status: 'done',
+                    url: response.url, // 这是关键：设置图片URL
+                    response: response,
+                  };
+                  onSuccess?.(fileObj, file);
                 })
                 .catch((error) => {
                   onError?.(error);

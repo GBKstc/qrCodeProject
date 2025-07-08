@@ -5,15 +5,16 @@ import {
   PageContainer,
   ProFormText,
   ProFormSelect,
-  ProFormDigit,
   ProTable,
 } from '@ant-design/pro-components';
 import { Button, message, Popconfirm } from 'antd';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { getEquipmentList, saveOrUpdateEquipment, removeEquipment } from '@/services/production/equipment';
+import { getAllProcesses } from '@/services/production/process';
 
 type EquipmentItem = {
   id: number;
+  code?: string;
   name: string;
   operateId?: number;
   operateName?: string;
@@ -30,6 +31,7 @@ const EquipmentManagement: React.FC = () => {
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
   const [editModalOpen, setEditModalOpen] = useState<boolean>(false);
   const [currentRecord, setCurrentRecord] = useState<EquipmentItem | undefined>();
+  const [processOptions, setProcessOptions] = useState<any[]>([]);
   const actionRef = useRef<ActionType>();
 
   // 设备类型选项
@@ -38,14 +40,34 @@ const EquipmentManagement: React.FC = () => {
     { label: '其他设备', value: 2 },
   ];
 
+  // 获取工序选项
+  const fetchProcessOptions = async () => {
+    try {
+      const response = await getAllProcesses();
+      if (response.success && response.data?.records) {
+        const options = response.data.records.map((item: any) => ({
+          label: item.name,
+          value: item.id,
+        }));
+        setProcessOptions(options);
+      }
+    } catch (error) {
+      console.error('获取工序列表失败:', error);
+    }
+  };
+
+  // 初始化工序选项
+  useEffect(() => {
+    fetchProcessOptions();
+  }, []);
+
   const handleCreate = async (values: any) => {
     try {
       const response = await saveOrUpdateEquipment({
+        code: values.code,
         name: values.name,
         type: values.type,
         productionProcessesId: values.productionProcessesId,
-        sort: values.sort,
-        remark: values.remark,
       });
       
       if (response.success) {
@@ -67,11 +89,10 @@ const EquipmentManagement: React.FC = () => {
     try {
       const response = await saveOrUpdateEquipment({
         id: currentRecord?.id,
+        code: values.code,
         name: values.name,
         type: values.type,
         productionProcessesId: values.productionProcessesId,
-        sort: values.sort,
-        remark: values.remark,
       });
       
       if (response.success) {
@@ -113,6 +134,12 @@ const EquipmentManagement: React.FC = () => {
       search: false,
     },
     {
+      title: '设备编号',
+      dataIndex: 'code',
+      ellipsis: true,
+      width: 120,
+    },
+    {
       title: '设备名称',
       dataIndex: 'name',
       ellipsis: true,
@@ -128,38 +155,11 @@ const EquipmentManagement: React.FC = () => {
       width: 100,
     },
     {
-      title: '所属工序',
+      title: '关联工序',
       dataIndex: 'productionProcessesName',
       search: false,
       ellipsis: true,
       width: 120,
-    },
-    {
-      title: '操作人',
-      dataIndex: 'operateName',
-      search: false,
-      ellipsis: true,
-      width: 100,
-    },
-    {
-      title: '序号',
-      dataIndex: 'sort',
-      search: false,
-      width: 80,
-    },
-    {
-      title: '备注',
-      dataIndex: 'remark',
-      search: false,
-      ellipsis: true,
-      width: 120,
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createTime',
-      search: false,
-      valueType: 'dateTime',
-      width: 150,
     },
     {
       title: '操作',
@@ -254,11 +254,26 @@ const EquipmentManagement: React.FC = () => {
         onFinish={handleCreate}
       >
         <ProFormText
+          rules={[{ required: true, message: '设备编号为必填项' }]}
+          width="md"
+          name="code"
+          label="设备编号"
+          placeholder="请输入设备编号"
+        />
+        <ProFormText
           rules={[{ required: true, message: '设备名称为必填项' }]}
           width="md"
           name="name"
           label="设备名称"
           placeholder="请输入设备名称"
+        />
+        <ProFormSelect
+          name="productionProcessesId"
+          label="关联工序"
+          width="md"
+          options={processOptions}
+          rules={[{ required: true, message: '请选择关联工序' }]}
+          placeholder="请选择关联工序"
         />
         <ProFormSelect
           name="type"
@@ -267,24 +282,6 @@ const EquipmentManagement: React.FC = () => {
           options={equipmentTypeOptions}
           rules={[{ required: true, message: '请选择设备类型' }]}
           placeholder="请选择设备类型"
-        />
-        <ProFormDigit
-          name="productionProcessesId"
-          label="工序ID"
-          width="md"
-          placeholder="请输入工序ID"
-        />
-        <ProFormDigit
-          name="sort"
-          label="序号"
-          width="md"
-          placeholder="请输入序号"
-        />
-        <ProFormText
-          name="remark"
-          label="备注"
-          width="md"
-          placeholder="请输入备注"
         />
       </ModalForm>
 
@@ -298,11 +295,26 @@ const EquipmentManagement: React.FC = () => {
         initialValues={currentRecord}
       >
         <ProFormText
+          rules={[{ required: true, message: '设备编号为必填项' }]}
+          width="md"
+          name="code"
+          label="设备编号"
+          placeholder="请输入设备编号"
+        />
+        <ProFormText
           rules={[{ required: true, message: '设备名称为必填项' }]}
           width="md"
           name="name"
           label="设备名称"
           placeholder="请输入设备名称"
+        />
+        <ProFormSelect
+          name="productionProcessesId"
+          label="关联工序"
+          width="md"
+          options={processOptions}
+          rules={[{ required: true, message: '请选择关联工序' }]}
+          placeholder="请选择关联工序"
         />
         <ProFormSelect
           name="type"
@@ -311,24 +323,6 @@ const EquipmentManagement: React.FC = () => {
           options={equipmentTypeOptions}
           rules={[{ required: true, message: '请选择设备类型' }]}
           placeholder="请选择设备类型"
-        />
-        <ProFormDigit
-          name="productionProcessesId"
-          label="工序ID"
-          width="md"
-          placeholder="请输入工序ID"
-        />
-        <ProFormDigit
-          name="sort"
-          label="序号"
-          width="md"
-          placeholder="请输入序号"
-        />
-        <ProFormText
-          name="remark"
-          label="备注"
-          width="md"
-          placeholder="请输入备注"
         />
       </ModalForm>
     </PageContainer>

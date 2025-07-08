@@ -291,3 +291,75 @@ declare namespace API {
     } | null;
   };
 }
+
+// 生产信息相关类型
+export interface ProductionInfoItem {
+  id: number;
+  batchCode: string;
+  colour: string;
+  createTime: string;
+  operateId: number;
+  operateName: string;
+  produceTime: string;
+  produceUserList: ProductionUserItem[];
+  productThumb: string;
+  qrcodeId: number;
+  qrcodeUrl: string;
+  remark: string;
+  shareBatchCode: string;
+  shareProductTime: string;
+  size: string;
+  thumbCode: string;
+  trademark: string;
+  updateTime: string;
+}
+
+export interface ProductionUserItem {
+  createTime: string;
+  id: number;
+  operateId: number;
+  operateName: string;
+  produceId: number;
+  productionProcessesId: number;
+  productionProcessesName: string;
+  remark: string;
+  updateTime: string;
+}
+
+export interface ProductionInfoParams {
+  batchCode?: string;
+  colour?: string;
+  currPage?: number;
+  endProduceTime?: string;
+  endShareProductTime?: string;
+  operateId?: number;
+  operateName?: string;
+  pageSize?: number;
+  productId?: number;
+  productThumb?: string;
+  qrcodeId?: number;
+  qrcodeUrl?: string;
+  remark?: string;
+  shareBatchCode?: string;
+  size?: string;
+  startProduceTime?: string;
+  startShareProductTime?: string;
+  thumbCode?: string;
+  trademark?: string;
+}
+
+export interface ProductionInfoListResult {
+  countId: string;
+  current: number;
+  maxLimit: number;
+  optimizeCountSql: boolean;
+  orders: {
+    asc: boolean;
+    column: string;
+  }[];
+  pages: number;
+  records: ProductionInfoItem[];
+  searchCount: boolean;
+  size: number;
+  total: number;
+}

@@ -1,4 +1,4 @@
-import { request } from '@umijs/max';
+import { request } from 'umi';
 
 /** 工序管理分页查询 GET /api/daciProductionProcesses/pageList */
 export async function getProcessList(
@@ -82,5 +82,13 @@ export async function getProcessDetail(id: string, options?: { [key: string]: an
   return request<API.ProcessItem>(`/api/daciProductionProcesses/${id}`, {
     method: 'GET',
     ...(options || {}),
+  });
+}
+
+/** 获取所有工序（用于下拉选择） */
+export async function getAllProcesses() {
+  return getProcessList({
+    current: 1,
+    pageSize: 999, // 获取所有工序
   });
 }

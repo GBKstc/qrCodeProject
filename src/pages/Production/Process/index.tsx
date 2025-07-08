@@ -43,7 +43,7 @@ const ProcessManagement: React.FC = () => {
       dataIndex: 'sequence',
       valueType: 'indexBorder',
       width: 80,
-      render: (_, record) => record.sequence,
+      // render: (_, record) => record.sequence,
     },
     {
       title: '工序名称',
@@ -62,28 +62,14 @@ const ProcessManagement: React.FC = () => {
       },
     },
     {
-      title: '工序描述',
+      title: '工序说明',
       dataIndex: 'description',
       valueType: 'textarea',
       ellipsis: true,
       search: false,
     },
     {
-      title: '状态',
-      dataIndex: 'status',
-      valueType: 'select',
-      valueEnum: {
-        0: { text: '禁用', status: 'Default' },
-        1: { text: '启用', status: 'Success' },
-      },
-      render: (_, record) => (
-        <Tag color={record.status === 1 ? 'green' : 'red'}>
-          {record.status === 1 ? '启用' : '禁用'}
-        </Tag>
-      ),
-    },
-    {
-      title: '创建时间',
+      title: '设置时间',
       dataIndex: 'createTime',
       valueType: 'dateTime',
       search: false,
@@ -145,7 +131,14 @@ const ProcessManagement: React.FC = () => {
 
   const handleUpdate = async (values: ProcessItem) => {
     try {
-      await updateProcess({ ...currentRow, ...values });
+      // 确保包含ID和更新的字段
+      const updateData = {
+        id: currentRow?.id,
+        name: values.name,
+        description: values.description,
+        sequence: values.sequence,
+      };
+      await updateProcess(updateData);
       message.success('更新成功');
       handleUpdateModalOpen(false);
       setCurrentRow(undefined);
@@ -264,22 +257,6 @@ const ProcessManagement: React.FC = () => {
           placeholder="请输入工序序号"
           min={1}
         />
-        <ProFormSelect
-          name="status"
-          label="状态"
-          width="md"
-          options={[
-            { label: '启用', value: 1 },
-            { label: '禁用', value: 0 },
-          ]}
-          initialValue={1}
-          rules={[
-            {
-              required: true,
-              message: '请选择状态',
-            },
-          ]}
-        />
       </ModalForm>
       
       <ModalForm
@@ -287,7 +264,12 @@ const ProcessManagement: React.FC = () => {
         width="400px"
         open={updateModalOpen}
         onOpenChange={handleUpdateModalOpen}
-        initialValues={currentRow}
+        key={currentRow?.id} // 添加 key 属性
+        initialValues={{
+          name: currentRow?.name,
+          description: currentRow?.description,
+          sequence: currentRow?.sequence,
+        }}
         onFinish={handleUpdate}
       >
         <ProFormText
@@ -326,21 +308,6 @@ const ProcessManagement: React.FC = () => {
           label="工序序号"
           placeholder="请输入工序序号"
           min={1}
-        />
-        <ProFormSelect
-          name="status"
-          label="状态"
-          width="md"
-          options={[
-            { label: '启用', value: 1 },
-            { label: '禁用', value: 0 },
-          ]}
-          rules={[
-            {
-              required: true,
-              message: '请选择状态',
-            },
-          ]}
         />
       </ModalForm>
     </PageContainer>

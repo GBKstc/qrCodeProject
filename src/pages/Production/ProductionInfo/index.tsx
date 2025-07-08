@@ -1,240 +1,193 @@
-import { EyeOutlined, PlusOutlined } from '@ant-design/icons';
+import { EyeOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
   PageContainer,
   ProTable,
   ProDescriptions,
 } from '@ant-design/pro-components';
-import { Button, Modal, Tag, QRCode } from 'antd';
-import React, { useRef, useState } from 'react';
-
-type ProductionInfoItem = {
-  id: string;
-  qrCode: string;
-  qrCodeNumber: string;
-  model: string;
-  drawingNumber: string;
-  trademark: string;
-  productionTime: string;
-  batchNumber: string;
-  // 上沙后
-  afterSandScanTime?: string;
-  afterSandOperator?: string;
-  // 瓷检后
-  afterCeramicInspectionScanTime?: string;
-  afterCeramicInspectionOperator?: string;
-  // 水压检测前
-  beforeWaterPressureTestScanTime?: string;
-  beforeWaterPressureTestOperator?: string;
-  // 水压检测后
-  afterWaterPressureTestScanTime?: string;
-  afterWaterPressureTestOperator?: string;
-  // 胶装前
-  beforeGluingScanTime?: string;
-  beforeGluingOperator?: string;
-  // 电检前
-  beforeElectricalTestScanTime?: string;
-  beforeElectricalTestOperator?: string;
-  // 电检后
-  afterElectricalTestScanTime?: string;
-  afterElectricalTestOperator?: string;
-  createTime: string;
-};
+import { Button, Modal, QRCode, message } from 'antd';
+import React, { useRef, useState, useMemo } from 'react';
+import { getProductionInfoList, ProductionInfoItem } from '@/services/production/productionInfo';
 
 const ProductionInfoManagement: React.FC = () => {
   const [detailModalOpen, setDetailModalOpen] = useState<boolean>(false);
   const [currentRow, setCurrentRow] = useState<ProductionInfoItem>();
+  const [allProcesses, setAllProcesses] = useState<string[]>([]);
   const actionRef = useRef<ActionType>();
-
-  // 模拟数据
-  const mockData: ProductionInfoItem[] = [
-    {
-      id: '1',
-      qrCode: 'QR001',
-      qrCodeNumber: 'QRN20231201001',
-      model: 'A1-Pro',
-      drawingNumber: 'DWG-001',
-      trademark: '智能品牌',
-      productionTime: '2023-12-01 08:00:00',
-      batchNumber: 'BATCH001',
-      afterSandScanTime: '2023-12-01 09:00:00',
-      afterSandOperator: '张三',
-      afterCeramicInspectionScanTime: '2023-12-01 10:00:00',
-      afterCeramicInspectionOperator: '李四',
-      beforeWaterPressureTestScanTime: '2023-12-01 11:00:00',
-      beforeWaterPressureTestOperator: '王五',
-      afterWaterPressureTestScanTime: '2023-12-01 12:00:00',
-      afterWaterPressureTestOperator: '赵六',
-      beforeGluingScanTime: '2023-12-01 13:00:00',
-      beforeGluingOperator: '钱七',
-      beforeElectricalTestScanTime: '2023-12-01 14:00:00',
-      beforeElectricalTestOperator: '孙八',
-      afterElectricalTestScanTime: '2023-12-01 15:00:00',
-      afterElectricalTestOperator: '周九',
-      createTime: '2023-12-01 08:00:00',
-    },
-    {
-      id: '2',
-      qrCode: 'QR002',
-      qrCodeNumber: 'QRN20231201002',
-      model: 'B2-Standard',
-      drawingNumber: 'DWG-002',
-      trademark: '科技品牌',
-      productionTime: '2023-12-01 14:00:00',
-      batchNumber: 'BATCH002',
-      afterSandScanTime: '2023-12-01 15:00:00',
-      afterSandOperator: '陈十',
-      createTime: '2023-12-01 14:00:00',
-    },
-  ];
 
   const handleViewDetail = (record: ProductionInfoItem) => {
     setCurrentRow(record);
     setDetailModalOpen(true);
   };
 
-  const columns: ProColumns<ProductionInfoItem>[] = [
-    {
-      title: '序号',
-      dataIndex: 'index',
-      valueType: 'indexBorder',
-      width: 60,
-      fixed: 'left',
-    },
-    {
-      title: '二维码',
-      dataIndex: 'qrCode',
-      width: 100,
-      render: (_, record) => (
-        <QRCode
-          value={record.qrCode}
-          size={50}
-          style={{ cursor: 'pointer' }}
-          onClick={() => handleViewDetail(record)}
-        />
-      ),
-    },
-    {
-      title: '二维码编号',
-      dataIndex: 'qrCodeNumber',
-      width: 150,
-      ellipsis: true,
-    },
-    {
-      title: '型号',
-      dataIndex: 'model',
-      width: 120,
-      ellipsis: true,
-    },
-    {
-      title: '图号',
-      dataIndex: 'drawingNumber',
-      width: 120,
-      ellipsis: true,
-    },
-    {
-      title: '商标',
-      dataIndex: 'trademark',
-      width: 120,
-      ellipsis: true,
-    },
-    {
-      title: '生产时间',
-      dataIndex: 'productionTime',
-      valueType: 'dateTime',
-      width: 160,
-    },
-    {
-      title: '批次编号',
-      dataIndex: 'batchNumber',
-      width: 120,
-      ellipsis: true,
-    },
-    {
-      title: '上沙后扫码时间',
-      dataIndex: 'afterSandScanTime',
-      valueType: 'dateTime',
-      width: 160,
-    },
-    {
-      title: '上沙后操作人员',
-      dataIndex: 'afterSandOperator',
-      width: 120,
-      ellipsis: true,
-    },
-    {
-      title: '瓷检后扫码时间',
-      dataIndex: 'afterCeramicInspectionScanTime',
-      valueType: 'dateTime',
-      width: 160,
-    },
-    {
-      title: '瓷检后操作人员',
-      dataIndex: 'afterCeramicInspectionOperator',
-      width: 120,
-      ellipsis: true,
-    },
-    {
-      title: '水压检测前扫码时间',
-      dataIndex: 'beforeWaterPressureTestScanTime',
-      valueType: 'dateTime',
-      width: 180,
-    },
-    {
-      title: '水压检测前操作人员',
-      dataIndex: 'beforeWaterPressureTestOperator',
-      width: 140,
-      ellipsis: true,
-    },
-    {
-      title: '水压检测后扫码时间',
-      dataIndex: 'afterWaterPressureTestScanTime',
-      valueType: 'dateTime',
-      width: 180,
-    },
-    {
-      title: '水压检测后操作人员',
-      dataIndex: 'afterWaterPressureTestOperator',
-      width: 140,
-      ellipsis: true,
-    },
-    {
-      title: '胶装前扫码时间',
-      dataIndex: 'beforeGluingScanTime',
-      valueType: 'dateTime',
-      width: 160,
-    },
-    {
-      title: '胶装前操作人员',
-      dataIndex: 'beforeGluingOperator',
-      width: 120,
-      ellipsis: true,
-    },
-    {
-      title: '电检前扫码时间',
-      dataIndex: 'beforeElectricalTestScanTime',
-      valueType: 'dateTime',
-      width: 160,
-    },
-    {
-      title: '电检前操作人员',
-      dataIndex: 'beforeElectricalTestOperator',
-      width: 120,
-      ellipsis: true,
-    },
-    {
-      title: '电检后扫码时间',
-      dataIndex: 'afterElectricalTestScanTime',
-      valueType: 'dateTime',
-      width: 160,
-    },
-    {
-      title: '电检后操作人员',
-      dataIndex: 'afterElectricalTestOperator',
-      width: 120,
-      ellipsis: true,
-    },
-    {
+  // 动态生成列配置
+  const columns: ProColumns<ProductionInfoItem>[] = useMemo(() => {
+    const baseColumns: ProColumns<ProductionInfoItem>[] = [
+      {
+        title: '序号',
+        dataIndex: 'index',
+        valueType: 'indexBorder',
+        width: 60,
+        fixed: 'left',
+        search: false,
+      },
+      {
+        title: '二维码',
+        dataIndex: 'qrcodeUrl',
+        width: 100,
+        search: false,
+        render: (_, record) => (
+          <QRCode
+            value={record.qrcodeUrl}
+            size={50}
+            style={{ cursor: 'pointer' }}
+            onClick={() => handleViewDetail(record)}
+          />
+        ),
+      },
+      {
+        title: '二维码ID',
+        dataIndex: 'qrcodeId',
+        width: 120,
+        search: false,
+      },
+      {
+        title: '型号',
+        dataIndex: 'size',
+        width: 120,
+        ellipsis: true,
+      },
+      {
+        title: '图号',
+        dataIndex: 'thumbCode',
+        width: 120,
+        ellipsis: true,
+      },
+      {
+        title: '商标',
+        dataIndex: 'trademark',
+        width: 120,
+        ellipsis: true,
+      },
+      {
+        title: '批次',
+        dataIndex: 'batchCode',
+        width: 120,
+        ellipsis: true,
+      },
+      {
+        title: '釉色',
+        dataIndex: 'colour',
+        width: 100,
+        ellipsis: true,
+      },
+      {
+        title: '生产时间',
+        dataIndex: 'produceTime',
+        valueType: 'dateTime',
+        width: 160,
+        search: false,
+      },
+      {
+        title: '生产时间范围',
+        dataIndex: 'produceTimeRange',
+        valueType: 'dateTimeRange',
+        hideInTable: true,
+        search: {
+          transform: (value) => {
+            return {
+              startProduceTime: value[0],
+              endProduceTime: value[1],
+            };
+          },
+        },
+      },
+      {
+        title: '展示生产时间',
+        dataIndex: 'shareProductTime',
+        valueType: 'dateTime',
+        width: 160,
+        search: false,
+      },
+      {
+        title: '展示生产时间范围',
+        dataIndex: 'shareProductTimeRange',
+        valueType: 'dateTimeRange',
+        hideInTable: true,
+        search: {
+          transform: (value) => {
+            return {
+              startShareProductTime: value[0],
+              endShareProductTime: value[1],
+            };
+          },
+        },
+      },
+      {
+        title: '展示批次号',
+        dataIndex: 'shareBatchCode',
+        width: 120,
+        ellipsis: true,
+      },
+      {
+        title: '操作人',
+        dataIndex: 'operateName',
+        width: 120,
+        ellipsis: true,
+      },
+      {
+        title: '备注',
+        dataIndex: 'remark',
+        width: 150,
+        ellipsis: true,
+        search: false,
+      },
+      {
+        title: '创建时间',
+        dataIndex: 'createTime',
+        valueType: 'dateTime',
+        width: 160,
+        search: false,
+      },
+    ];
+
+    // 动态生成工序列
+    const processColumns: ProColumns<ProductionInfoItem>[] = [];
+    
+    allProcesses.forEach((processName) => {
+      // 扫码时间列
+      processColumns.push({
+        title: `${processName}扫码时间`,
+        dataIndex: `${processName}_scanTime`,
+        valueType: 'dateTime',
+        width: 160,
+        search: false,
+        render: (_, record) => {
+          const processItem = record.produceUserList?.find(
+            item => item.productionProcessesName === processName
+          );
+          return processItem?.updateTime || '-';
+        },
+      });
+      
+      // 操作人员列
+      processColumns.push({
+        title: `${processName}操作人员`,
+        dataIndex: `${processName}_operator`,
+        width: 120,
+        search: false,
+        ellipsis: true,
+        render: (_, record) => {
+          const processItem = record.produceUserList?.find(
+            item => item.productionProcessesName === processName
+          );
+          return processItem?.operateName || '-';
+        },
+      });
+    });
+
+    // 操作列
+    const actionColumn: ProColumns<ProductionInfoItem> = {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
@@ -250,8 +203,23 @@ const ProductionInfoManagement: React.FC = () => {
           查看
         </Button>,
       ],
-    },
-  ];
+    };
+
+    return [...baseColumns, ...processColumns, actionColumn];
+  }, [allProcesses]);
+
+  // 从数据中提取所有工序名称
+  const extractProcesses = (data: ProductionInfoItem[]) => {
+    const processSet = new Set<string>();
+    data.forEach(item => {
+      item.produceUserList?.forEach(process => {
+        if (process.productionProcessesName) {
+          processSet.add(process.productionProcessesName);
+        }
+      });
+    });
+    return Array.from(processSet).sort();
+  };
 
   return (
     <PageContainer>
@@ -262,39 +230,47 @@ const ProductionInfoManagement: React.FC = () => {
         search={{
           labelWidth: 120,
         }}
-        scroll={{ x: 2800 }}
+        scroll={{ x: 2000 + allProcesses.length * 280 }} // 动态调整滚动宽度
         pagination={{
           pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
+          // showSizeChanger: true,
+          // showQuickJumper: true,
         }}
-        request={async (params) => {
-          // 模拟搜索过滤
-          let filteredData = mockData;
-          
-          if (params.qrCodeNumber) {
-            filteredData = filteredData.filter(item => 
-              item.qrCodeNumber.includes(params.qrCodeNumber)
-            );
+        request={async (params, sort, filter) => {
+          try {
+            const response = await getProductionInfoList({
+              ...params,
+              currPage: params.current,
+              pageSize: params.pageSize,
+            });
+            
+            if (response.success) {
+              // 提取工序信息并更新状态
+              const processes = extractProcesses(response.data.records);
+              setAllProcesses(processes);
+              
+              return {
+                data: response.data.records,
+                success: true,
+                total: response.data.total,
+              };
+            } else {
+              message.error(response.message || '获取数据失败');
+              return {
+                data: [],
+                success: false,
+                total: 0,
+              };
+            }
+          } catch (error) {
+            console.error('获取生产信息列表失败:', error);
+            message.error('获取数据失败，请重试');
+            return {
+              data: [],
+              success: false,
+              total: 0,
+            };
           }
-          
-          if (params.model) {
-            filteredData = filteredData.filter(item => 
-              item.model.includes(params.model)
-            );
-          }
-          
-          if (params.batchNumber) {
-            filteredData = filteredData.filter(item => 
-              item.batchNumber.includes(params.batchNumber)
-            );
-          }
-
-          return {
-            data: filteredData,
-            success: true,
-            total: filteredData.length,
-          };
         }}
         columns={columns}
       />
@@ -304,120 +280,283 @@ const ProductionInfoManagement: React.FC = () => {
         open={detailModalOpen}
         onCancel={() => setDetailModalOpen(false)}
         footer={[
-          <Button key="close" onClick={() => setDetailModalOpen(false)}>
+          <Button key="close" type="primary" onClick={() => setDetailModalOpen(false)}>
             关闭
           </Button>,
         ]}
-        width={1200}
+        width={1400}
+        style={{ top: 20 }}
+        bodyStyle={{ padding: '24px', maxHeight: '80vh', overflowY: 'auto' }}
       >
         {currentRow && (
-          <ProDescriptions
-            column={2}
-            dataSource={currentRow}
-            columns={[
-              {
-                title: '二维码',
-                dataIndex: 'qrCode',
-                render: () => (
-                  <QRCode value={currentRow.qrCode} size={100} />
-                ),
-              },
-              {
-                title: '二维码编号',
-                dataIndex: 'qrCodeNumber',
-              },
-              {
-                title: '型号',
-                dataIndex: 'model',
-              },
-              {
-                title: '图号',
-                dataIndex: 'drawingNumber',
-              },
-              {
-                title: '商标',
-                dataIndex: 'trademark',
-              },
-              {
-                title: '生产时间',
-                dataIndex: 'productionTime',
-                valueType: 'dateTime',
-              },
-              {
-                title: '批次编号',
-                dataIndex: 'batchNumber',
-              },
-              {
-                title: '上沙后扫码时间',
-                dataIndex: 'afterSandScanTime',
-                valueType: 'dateTime',
-              },
-              {
-                title: '上沙后操作人员',
-                dataIndex: 'afterSandOperator',
-              },
-              {
-                title: '瓷检后扫码时间',
-                dataIndex: 'afterCeramicInspectionScanTime',
-                valueType: 'dateTime',
-              },
-              {
-                title: '瓷检后操作人员',
-                dataIndex: 'afterCeramicInspectionOperator',
-              },
-              {
-                title: '水压检测前扫码时间',
-                dataIndex: 'beforeWaterPressureTestScanTime',
-                valueType: 'dateTime',
-              },
-              {
-                title: '水压检测前操作人员',
-                dataIndex: 'beforeWaterPressureTestOperator',
-              },
-              {
-                title: '水压检测后扫码时间',
-                dataIndex: 'afterWaterPressureTestScanTime',
-                valueType: 'dateTime',
-              },
-              {
-                title: '水压检测后操作人员',
-                dataIndex: 'afterWaterPressureTestOperator',
-              },
-              {
-                title: '胶装前扫码时间',
-                dataIndex: 'beforeGluingScanTime',
-                valueType: 'dateTime',
-              },
-              {
-                title: '胶装前操作人员',
-                dataIndex: 'beforeGluingOperator',
-              },
-              {
-                title: '电检前扫码时间',
-                dataIndex: 'beforeElectricalTestScanTime',
-                valueType: 'dateTime',
-              },
-              {
-                title: '电检前操作人员',
-                dataIndex: 'beforeElectricalTestOperator',
-              },
-              {
-                title: '电检后扫码时间',
-                dataIndex: 'afterElectricalTestScanTime',
-                valueType: 'dateTime',
-              },
-              {
-                title: '电检后操作人员',
-                dataIndex: 'afterElectricalTestOperator',
-              },
-              {
-                title: '创建时间',
-                dataIndex: 'createTime',
-                valueType: 'dateTime',
-                span: 2,
-              },
-            ]}
-          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* 基本信息区域 */}
+            <div style={{ 
+              background: '#fafafa', 
+              padding: '20px', 
+              borderRadius: '8px',
+              border: '1px solid #f0f0f0'
+            }}>
+              <ProDescriptions
+                title={<span style={{ fontSize: '16px', fontWeight: 600, color: '#1890ff' }}>基本信息</span>}
+                column={3}
+                dataSource={currentRow}
+                labelStyle={{ fontWeight: 500, color: '#666' }}
+                contentStyle={{ color: '#333' }}
+                columns={[
+                  {
+                    title: '二维码',
+                    dataIndex: 'qrcodeUrl',
+                    span: 1,
+                    render: () => (
+                      <div style={{ textAlign: 'center', padding: '10px' }}>
+                        <QRCode 
+                          value={currentRow.qrcodeUrl} 
+                          size={120} 
+                          style={{ border: '1px solid #d9d9d9', borderRadius: '4px' }}
+                        />
+                      </div>
+                    ),
+                  },
+                  {
+                    title: '二维码ID',
+                    dataIndex: 'qrcodeId',
+                  },
+                  {
+                    title: '型号',
+                    dataIndex: 'size',
+                  },
+                  {
+                    title: '图号',
+                    dataIndex: 'thumbCode',
+                  },
+                  {
+                    title: '商标',
+                    dataIndex: 'trademark',
+                  },
+                  {
+                    title: '批次',
+                    dataIndex: 'batchCode',
+                  },
+                  {
+                    title: '釉色',
+                    dataIndex: 'colour',
+                    render: (text) => (
+                      <span style={{ 
+                        padding: '4px 8px', 
+                        background: '#f6ffed', 
+                        border: '1px solid #b7eb8f',
+                        borderRadius: '4px',
+                        color: '#52c41a'
+                      }}>
+                        {text}
+                      </span>
+                    ),
+                  },
+                  {
+                    title: '生产时间',
+                    dataIndex: 'produceTime',
+                    valueType: 'dateTime',
+                  },
+                  {
+                    title: '展示生产时间',
+                    dataIndex: 'shareProductTime',
+                    valueType: 'dateTime',
+                  },
+                  {
+                    title: '展示批次号',
+                    dataIndex: 'shareBatchCode',
+                  },
+                  {
+                    title: '操作人',
+                    dataIndex: 'operateName',
+                    render: (text) => (
+                      <span style={{ 
+                        padding: '4px 8px', 
+                        background: '#e6f7ff', 
+                        border: '1px solid #91d5ff',
+                        borderRadius: '4px',
+                        color: '#1890ff'
+                      }}>
+                        {text}
+                      </span>
+                    ),
+                  },
+                  {
+                    title: '备注',
+                    dataIndex: 'remark',
+                    span: 3,
+                    render: (text) => (
+                      <div style={{ 
+                        padding: '8px 12px', 
+                        background: '#fff7e6', 
+                        border: '1px solid #ffd591',
+                        borderRadius: '4px',
+                        minHeight: '40px',
+                        color: '#d46b08'
+                      }}>
+                        {text || '暂无备注'}
+                      </div>
+                    ),
+                  },
+                  {
+                    title: '创建时间',
+                    dataIndex: 'createTime',
+                    valueType: 'dateTime',
+                  },
+                  {
+                    title: '更新时间',
+                    dataIndex: 'updateTime',
+                    valueType: 'dateTime',
+                  },
+                ]}
+              />
+            </div>
+            
+            {/* 生产工序信息区域 */}
+            {currentRow.produceUserList && currentRow.produceUserList.length > 0 && (
+              <div style={{ 
+                background: '#f9f9f9', 
+                padding: '20px', 
+                borderRadius: '8px',
+                border: '1px solid #f0f0f0'
+              }}>
+                <div style={{ 
+                  marginBottom: '16px', 
+                  paddingBottom: '12px', 
+                  borderBottom: '2px solid #1890ff'
+                }}>
+                  <h3 style={{ 
+                    margin: 0, 
+                    fontSize: '16px', 
+                    fontWeight: 600, 
+                    color: '#1890ff'
+                  }}>
+                    生产工序信息
+                  </h3>
+                </div>
+                
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', 
+                  gap: '16px'
+                }}>
+                  {currentRow.produceUserList.map((item, index) => (
+                    <div
+                      key={item.id}
+                      style={{
+                        background: '#fff',
+                        padding: '16px',
+                        borderRadius: '8px',
+                        border: '1px solid #e8e8e8',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                        transition: 'all 0.3s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                      }}
+                    >
+                      <div style={{ 
+                        marginBottom: '12px', 
+                        paddingBottom: '8px', 
+                        borderBottom: '1px solid #f0f0f0'
+                      }}>
+                        <span style={{ 
+                          fontSize: '14px', 
+                          fontWeight: 600, 
+                          color: '#1890ff',
+                          background: '#e6f7ff',
+                          padding: '4px 8px',
+                          borderRadius: '4px'
+                        }}>
+                          工序{index + 1}: {item.productionProcessesName}
+                        </span>
+                      </div>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          <span style={{ 
+                            fontWeight: 500, 
+                            color: '#666', 
+                            minWidth: '80px',
+                            fontSize: '13px'
+                          }}>
+                            操作人员:
+                          </span>
+                          <span style={{ 
+                            color: '#333',
+                            padding: '2px 6px',
+                            background: '#f6ffed',
+                            borderRadius: '3px',
+                            fontSize: '13px'
+                          }}>
+                            {item.operateName}
+                          </span>
+                        </div>
+                        
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          <span style={{ 
+                            fontWeight: 500, 
+                            color: '#666', 
+                            minWidth: '80px',
+                            fontSize: '13px'
+                          }}>
+                            创建时间:
+                          </span>
+                          <span style={{ color: '#333', fontSize: '13px' }}>
+                            {item.createTime}
+                          </span>
+                        </div>
+                        
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          <span style={{ 
+                            fontWeight: 500, 
+                            color: '#666', 
+                            minWidth: '80px',
+                            fontSize: '13px'
+                          }}>
+                            更新时间:
+                          </span>
+                          <span style={{ color: '#333', fontSize: '13px' }}>
+                            {item.updateTime}
+                          </span>
+                        </div>
+                        
+                        {item.remark && (
+                          <div style={{ marginTop: '4px' }}>
+                            <span style={{ 
+                              fontWeight: 500, 
+                              color: '#666', 
+                              fontSize: '13px'
+                            }}>
+                              备注:
+                            </span>
+                            <div style={{ 
+                              marginTop: '4px',
+                              padding: '6px 8px',
+                              background: '#fff7e6',
+                              border: '1px solid #ffd591',
+                              borderRadius: '4px',
+                              color: '#d46b08',
+                              fontSize: '12px',
+                              lineHeight: '1.4'
+                            }}>
+                              {item.remark}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </Modal>
     </PageContainer>
