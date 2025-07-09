@@ -39,7 +39,7 @@ const DisplayManagement: React.FC = () => {
     setLoading(true);
     try {
       const response = await request('/api/daciProduceShow/pageList', {
-        method: 'POST',
+        method: 'GET',
         data: {
           currPage: 1,
           pageSize: 999, // 获取全部
@@ -63,13 +63,19 @@ const DisplayManagement: React.FC = () => {
     try {
       const response = await request('/api/daciProduceShow/saveOrUpdate', {
         method: 'POST',
-        data: {
-          id: record.id,
-          code: record.code,
-          name: record.name,
-          isShow: isShow ? 1 : 0,
-          remark: record.remark,
+        headers: {
+          'Content-Type': 'application/json',
         },
+        data: [{
+          code: record.code || "",
+          del: 0,
+          id: record.id || 0,
+          isShow: isShow ? 1 : 0,
+          name: record.name || "",
+          operateId: record.operateId || 0,
+          operateName: record.operateName || "",
+          remark: record.remark || ""
+        }],
       });
       
       if (response.success) {

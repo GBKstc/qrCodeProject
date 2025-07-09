@@ -391,6 +391,7 @@ const QRCodeManagement: React.FC = () => {
         onOpenChange={handleUpdateModalOpen}
         initialValues={currentRecord}
         onFinish={handleUpdate}
+        key={currentRecord?.id} // 添加 key 属性
       >
         <ProFormText
           rules={[

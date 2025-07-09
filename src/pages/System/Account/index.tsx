@@ -9,9 +9,9 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl } from '@umijs/max';
-import { Button, Drawer, message, Switch, Tag } from 'antd';
+import { Button, Drawer, message, Switch, Tag, Popconfirm } from 'antd';
 import React, { useRef, useState } from 'react';
-import { getAccountList, addAccount, updateAccount, removeAccount, batchRemoveAccount } from '@/services/system/account';
+import { getAccountList, addAccount, updateAccount, disableAccount } from '@/services/system/account';
 import { getAllRolesWithPagination } from '@/services/system/role';
 
 const AccountList: React.FC = () => {
@@ -106,29 +106,29 @@ const AccountList: React.FC = () => {
       valueType: 'dateTime',
       hideInSearch: true,
     },
-    {
-      title: '是否启用',
-      dataIndex: 'del',
-      hideInForm: true,
-      hideInSearch: true,
-      render: (_, record) => (
-        <Switch
-          checked={record.del === 0}
-          onChange={async (checked) => {
-            try {
-              await updateAccount({
-                ...record,
-                del: checked ? 0 : 1,
-              });
-              message.success('状态更新成功');
-              actionRef.current?.reload();
-            } catch (error) {
-              message.error('状态更新失败');
-            }
-          }}
-        />
-      ),
-    },
+    // {
+    //   title: '是否启用',
+    //   dataIndex: 'del',
+    //   hideInForm: true,
+    //   hideInSearch: true,
+    //   render: (_, record) => (
+    //     <Switch
+    //       checked={record.del === 0}
+    //       onChange={async (checked) => {
+    //         try {
+    //           await updateAccount({
+    //             ...record,
+    //             del: checked ? 0 : 1,
+    //           });
+    //           message.success('状态更新成功');
+    //           actionRef.current?.reload();
+    //         } catch (error) {
+    //           message.error('状态更新失败');
+    //         }
+    //       }}
+    //     />
+    //   ),
+    // },
     {
       title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="操作" />,
       dataIndex: 'option',
@@ -143,20 +143,25 @@ const AccountList: React.FC = () => {
         // >
         //   <FormattedMessage id="pages.searchTable.config" defaultMessage="编辑" />
         // </a>,
-        <a
-          key="delete"
-          onClick={async () => {
+        <Popconfirm
+          title="确认删除"
+          description="确定要删除这个账户吗？此操作不可恢复。"
+          onConfirm={async () => {
             try {
-              await removeAccount(record.id!);
-              message.success('删除成功');
+              await disableAccount(record.id!);
+              message.success('禁用成功');
               actionRef.current?.reload();
             } catch (error) {
-              message.error('删除失败');
+              message.error('禁用失败');
             }
           }}
+          okText="确认"
+          cancelText="取消"
         >
-          <FormattedMessage id="pages.searchTable.delete" defaultMessage="删除" />
-        </a>,
+          <a key="delete">
+            <FormattedMessage id="pages.searchTable.delete" defaultMessage="删除" />
+          </a>
+        </Popconfirm>,
       ],
     },
   ];
@@ -244,13 +249,16 @@ const AccountList: React.FC = () => {
             style={{ marginLeft: 8 }}
             onClick={async () => {
               try {
-                const ids = selectedRowsState.map((row) => row.id!).filter(Boolean);
-                await batchRemoveAccount(ids);
+                // 批量禁用：逐个调用disableAccount接口
+                const disablePromises = selectedRowsState.map((row) => 
+                  disableAccount(row.id!)
+                );
+                await Promise.all(disablePromises);
                 setSelectedRows([]);
                 actionRef.current?.reloadAndRest?.();
-                message.success('批量删除成功');
+                message.success('批量禁用成功');
               } catch (error) {
-                message.error('批量删除失败');
+                message.error('批量禁用失败');
               }
             }}
           >
@@ -360,6 +368,7 @@ const AccountList: React.FC = () => {
         open={updateModalOpen}
         onOpenChange={handleUpdateModalOpen}
         initialValues={currentRow}
+        key={currentRow?.id}
         onFinish={async (value) => {
           try {
             await updateAccount({

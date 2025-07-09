@@ -65,3 +65,11 @@ export async function batchRemoveAccount(ids: number[], options?: { [key: string
     ...(options || {}),
   });
 }
+
+// 禁用账户
+export async function disableAccount(id: number) {
+  return request('/api/dcPlatUser/disable', {
+    method: 'GET',
+    params: { id },
+  });
+}

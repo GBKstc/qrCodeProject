@@ -97,7 +97,18 @@ const RoleManagement: React.FC = () => {
             onConfirm={async () => {
               try {
                 if (record.id) {
-                  const result = await removeRole(record.id);
+                  // 使用编辑接口进行软删除
+                  const result = await updateRole({
+                    id: record.id,
+                    roleCode: record.roleCode,
+                    roleName: record.roleName,
+                    companyId: record.companyId || 0,
+                    del: 1, // 设置删除标记
+                    authSaveParamList: record.authVOList?.map(auth => ({
+                      menuId: auth.menuId,
+                      roleId: record.id,
+                    })) || [],
+                  });
                   if (result.success) {
                     message.success('删除成功');
                     actionRef.current?.reload();
@@ -198,16 +209,30 @@ const RoleManagement: React.FC = () => {
           <Button
             onClick={async () => {
               try {
-                const ids = selectedRowsState.map(item => item.id).filter(id => id !== undefined) as number[];
-                if (ids.length > 0) {
-                  const result = await batchRemoveRole(ids);
-                  if (result.success) {
-                    message.success('批量删除成功');
-                    setSelectedRows([]);
-                    actionRef.current?.reloadAndRest?.();
-                  } else {
-                    message.error(result.message || '批量删除失败');
-                  }
+                // 批量删除改为使用编辑接口
+                const updatePromises = selectedRowsState.map(item => 
+                  updateRole({
+                    id: item.id,
+                    roleCode: item.roleCode,
+                    roleName: item.roleName,
+                    companyId: item.companyId || 0,
+                    del: 1, // 设置删除标记
+                    authSaveParamList: item.authVOList?.map(auth => ({
+                      menuId: auth.menuId,
+                      roleId: item.id,
+                    })) || [],
+                  })
+                );
+                
+                const results = await Promise.all(updatePromises);
+                const allSuccess = results.every(result => result.success);
+                
+                if (allSuccess) {
+                  message.success('批量删除成功');
+                  setSelectedRows([]);
+                  actionRef.current?.reloadAndRest?.();
+                } else {
+                  message.error('部分删除失败，请重试');
                 }
               } catch (error) {
                 message.error('批量删除失败');

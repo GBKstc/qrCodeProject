@@ -293,6 +293,7 @@ const EquipmentManagement: React.FC = () => {
         onOpenChange={setEditModalOpen}
         onFinish={handleUpdate}
         initialValues={currentRecord}
+        key={currentRecord?.id} // 添加 key 属性
       >
         <ProFormText
           rules={[{ required: true, message: '设备编号为必填项' }]}
