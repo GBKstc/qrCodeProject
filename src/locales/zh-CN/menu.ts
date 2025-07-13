@@ -60,7 +60,7 @@ export default {
   'menu.production': '生产管理',
   'menu.production.process': '工序管理',
   'menu.production.equipment': '设备管理',
-  'menu.production.equipment-overview': '设备状态概览',
+  'menu.production.equipmentOverview': '设备状态概览',
   'menu.production.qrcode': '二维码管理',
   'menu.production.product': '产品管理',
   'menu.production.productionInfo': '生产信息管理',

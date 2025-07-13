@@ -249,13 +249,13 @@ const ProductManagement: React.FC = () => {
   };
 
   const columns: ProColumns<ProductItem>[] = [
-    // {
-    //   title: '序号',
-    //   dataIndex: 'index',
-    //   // valueType: 'indexBorder',
-    //   width: 60,
-    //   search: false,
-    // },
+    {
+      title: '序号',
+      dataIndex: 'index',
+      valueType: 'index',
+      width: 60,
+      search: false,
+    },
     {
       title: '批次',
       dataIndex: 'batchCode',
@@ -414,6 +414,7 @@ const ProductManagement: React.FC = () => {
       />
       
       {/* 新建产品表单 */}
+      {/* 新建产品表单 */}
       <ModalForm
         title="新建产品"
         width="600px"
@@ -449,12 +450,8 @@ const ProductManagement: React.FC = () => {
           label="釉色"
           placeholder="请输入釉色"
         />
-        <ProFormText
-          name="remark"
-          label="备注"
-          placeholder="请输入备注"
-        />
         <ProFormUploadButton
+          rules={[{ required: true, message: '产品图片为必填项' }]}
           name="productThumb"
           label="产品图片"
           max={1}
@@ -483,6 +480,7 @@ const ProductManagement: React.FC = () => {
           extra="支持 JPG、PNG 格式，文件大小不超过 10MB"
         />
         <ProFormUploadButton
+          rules={[{ required: true, message: '商标图片为必填项' }]}
           name="trademark"
           label="商标图片"
           max={1}
@@ -574,12 +572,9 @@ const ProductManagement: React.FC = () => {
           label="釉色"
           placeholder="请输入釉色"
         />
-        <ProFormText
-          name="remark"
-          label="备注"
-          placeholder="请输入备注"
-        />
+        
         <ProFormUploadButton
+          rules={[{ required: true, message: '产品图片为必填项' }]}
           name="productThumb"
           label="产品图片"
           max={1}
@@ -609,6 +604,7 @@ const ProductManagement: React.FC = () => {
           extra="支持 JPG、PNG 格式，文件大小不超过 2MB"
         />
         <ProFormUploadButton
+          rules={[{ required: true, message: '商标图片为必填项' }]}
           name="trademark"
           label="商标图片"
           max={1}
@@ -634,7 +630,7 @@ const ProductManagement: React.FC = () => {
                 });
             },
           }}
-          extra="支持 JPG、PNG 格式，文件大小不超过 2MB"
+          extra="支持 JPG、PNG 格式，文件大小不超过 10MB"
         />
       </ModalForm>
     </PageContainer>

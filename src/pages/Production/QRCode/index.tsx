@@ -176,11 +176,7 @@ const QRCodeManagement: React.FC = () => {
       ellipsis: true,
       search: false,
       responsive: ['xl'],
-      render: (text) => (
-        <a href={text} target="_blank" rel="noopener noreferrer">
-          {text}
-        </a>
-      ),
+      render: (text) =>text,
     },
     {
       title: '设备ID',

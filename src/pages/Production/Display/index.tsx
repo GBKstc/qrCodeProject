@@ -209,7 +209,7 @@ const DisplayManagement: React.FC = () => {
     {
       title: '序号',
       dataIndex: 'index',
-      // valueType: 'indexBorder',
+      valueType: 'index',
       width: 60,
       fixed: 'left',
       search: false,
@@ -249,6 +249,7 @@ const DisplayManagement: React.FC = () => {
       dataIndex: 'trademark',
       width: 120,
       ellipsis: true,
+      search: false,
     },
     {
       title: '生产时间',

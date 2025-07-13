@@ -126,13 +126,13 @@ const EquipmentManagement: React.FC = () => {
   };
 
   const columns: ProColumns<EquipmentItem>[] = [
-    // {
-    //   title: '序号',
-    //   dataIndex: 'index',
-    //   // valueType: 'indexBorder',
-    //   width: 60,
-    //   search: false,
-    // },
+    {
+      title: '序号',
+      dataIndex: 'index',
+      valueType: 'index',
+      width: 60,
+      search: false,
+    },
     {
       title: '设备编号',
       dataIndex: 'code',
@@ -154,13 +154,7 @@ const EquipmentManagement: React.FC = () => {
       width: 120,
       // 支持模糊搜索
     },
-    {
-      title: '产线',
-      dataIndex: 'productionLineName',
-      ellipsis: true,
-      width: 120,
-      // 支持模糊搜索
-    },
+  
     {
       title: '设备类型',
       dataIndex: 'type',

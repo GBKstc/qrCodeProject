@@ -41,8 +41,8 @@ const ProcessManagement: React.FC = () => {
     {
       title: '工序序号',
       dataIndex: 'sequence',
-      // valueType: 'indexBorder',
-      width: 80,
+      valueType: 'index',
+      // width: 80,
       // render: (_, record) => record.sequence,
     },
     {

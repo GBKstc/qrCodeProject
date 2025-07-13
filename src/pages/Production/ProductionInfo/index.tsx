@@ -23,14 +23,14 @@ const ProductionInfoManagement: React.FC = () => {
   // 动态生成列配置
   const columns: ProColumns<ProductionInfoItem>[] = useMemo(() => {
     const baseColumns: ProColumns<ProductionInfoItem>[] = [
-      // {
-      //   title: '序号',
-      //   dataIndex: 'index',
-      //   // valueType: 'indexBorder',
-      //   width: 60,
-      //   fixed: 'left',
-      //   search: false,
-      // },
+      {
+        title: '序号',
+        dataIndex: 'index',
+        valueType: 'index',
+        width: 60,
+        fixed: 'left',
+        search: false,
+      },
       {
         title: '二维码',
         dataIndex: 'qrcodeUrl',

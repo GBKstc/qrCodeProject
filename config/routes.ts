@@ -58,10 +58,10 @@ export default [
         component: './Production/Process',
       },
       {
-        path: '/production/equipment',
-        name: 'equipment',
+        path: '/production/equipment-overview',
+        name: 'equipmentOverview',
         access: 'canViewEquipment',
-        component: './Production/Equipment',
+        component: './Production/EquipmentOverview',
       },
       {
         path: '/production/qrcode',
