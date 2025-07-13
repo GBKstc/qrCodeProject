@@ -249,36 +249,36 @@ const ProductManagement: React.FC = () => {
   };
 
   const columns: ProColumns<ProductItem>[] = [
-    {
-      title: '序号',
-      dataIndex: 'index',
-      valueType: 'indexBorder',
-      width: 60,
-      search: false,
-    },
+    // {
+    //   title: '序号',
+    //   dataIndex: 'index',
+    //   // valueType: 'indexBorder',
+    //   width: 60,
+    //   search: false,
+    // },
     {
       title: '批次',
       dataIndex: 'batchCode',
       ellipsis: true,
-      width: 120,
+      // width: 120,
     },
     {
       title: '图号',
       dataIndex: 'thumbCode',
       ellipsis: true,
-      width: 120,
+      // width: 120,
     },
     {
       title: '型号',
       dataIndex: 'size',
       ellipsis: true,
-      width: 120,
+      // width: 120,
     },
     {
       title: '商标',
       dataIndex: 'trademark',
       ellipsis: true,
-      width: 100,
+      // width: 100,
       render: (_, record) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {record.trademark && (
@@ -299,34 +299,34 @@ const ProductManagement: React.FC = () => {
       title: '釉色',
       dataIndex: 'colour',
       ellipsis: true,
-      width: 100,
+      // width: 100,
     },
     {
       title: '操作人',
       dataIndex: 'operateName',
       search: false,
       ellipsis: true,
-      width: 100,
+      // width: 100,
     },
     {
       title: '备注',
       dataIndex: 'remark',
       search: false,
       ellipsis: true,
-      width: 120,
+      // width: 120,
     },
     {
       title: '创建时间',
       dataIndex: 'createTime',
       search: false,
       valueType: 'dateTime',
-      width: 150,
+      // width: 150,
     },
     {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      width: 120,
+      // width: 120,
       render: (_, record) => [
         <a
           key="edit"

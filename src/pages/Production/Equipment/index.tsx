@@ -34,10 +34,10 @@ const EquipmentManagement: React.FC = () => {
   const [processOptions, setProcessOptions] = useState<any[]>([]);
   const actionRef = useRef<ActionType>();
 
-  // 设备类型选项
+  // 设备类型选项 - 修改为喷码机和PDA
   const equipmentTypeOptions = [
     { label: '喷码机', value: 1 },
-    { label: '其他设备', value: 2 },
+    { label: 'PDA', value: 2 },
   ];
 
   // 获取工序选项
@@ -126,33 +126,50 @@ const EquipmentManagement: React.FC = () => {
   };
 
   const columns: ProColumns<EquipmentItem>[] = [
-    {
-      title: '序号',
-      dataIndex: 'index',
-      valueType: 'indexBorder',
-      width: 60,
-      search: false,
-    },
+    // {
+    //   title: '序号',
+    //   dataIndex: 'index',
+    //   // valueType: 'indexBorder',
+    //   width: 60,
+    //   search: false,
+    // },
     {
       title: '设备编号',
       dataIndex: 'code',
       ellipsis: true,
       width: 120,
+      search: false, // 移除设备编号搜索
     },
     {
       title: '设备名称',
       dataIndex: 'name',
       ellipsis: true,
       width: 150,
+      search: false, // 移除设备名称搜索
+    },
+    {
+      title: '工序',
+      dataIndex: 'productionProcessesName',
+      ellipsis: true,
+      width: 120,
+      // 支持模糊搜索
+    },
+    {
+      title: '产线',
+      dataIndex: 'productionLineName',
+      ellipsis: true,
+      width: 120,
+      // 支持模糊搜索
     },
     {
       title: '设备类型',
       dataIndex: 'type',
       valueEnum: {
         1: { text: '喷码机' },
-        2: { text: '其他设备' },
+        2: { text: 'PDA' },
       },
       width: 100,
+      // 下拉选择搜索
     },
     {
       title: '关联工序',
@@ -215,8 +232,9 @@ const EquipmentManagement: React.FC = () => {
             const response = await getEquipmentList({
               currPage: params.current || 1,
               pageSize: params.pageSize || 10,
-              name: params.name,
-              type: params.type,
+              productionProcessesName: params.productionProcessesName, // 工序搜索
+              productionLineName: params.productionLineName, // 产线搜索
+              type: params.type, // 设备类型搜索
             });
             
             if (response.success && response.data) {
@@ -251,6 +269,7 @@ const EquipmentManagement: React.FC = () => {
         width="600px"
         open={createModalOpen}
         onOpenChange={handleModalOpen}
+        key={createModalOpen ? 'create' : 'create-closed'} // 添加 key 属性强制重新渲染
         onFinish={handleCreate}
       >
         <ProFormText

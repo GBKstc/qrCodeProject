@@ -33,7 +33,7 @@ const EquipmentOverview: React.FC = () => {
     {
       title: '序号',
       dataIndex: 'index',
-      valueType: 'indexBorder',
+      // valueType: 'indexBorder',
       width: 60,
       search: false,
     },

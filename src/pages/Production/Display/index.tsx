@@ -209,7 +209,7 @@ const DisplayManagement: React.FC = () => {
     {
       title: '序号',
       dataIndex: 'index',
-      valueType: 'indexBorder',
+      // valueType: 'indexBorder',
       width: 60,
       fixed: 'left',
       search: false,

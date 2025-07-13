@@ -235,12 +235,12 @@ const ProcessManagement: React.FC = () => {
           placeholder="请输入工序名称"
         />
         <ProFormTextArea
-          rules={[
-            {
-              required: true,
-              message: '工序描述为必填项',
-            },
-          ]}
+          // rules={[
+          //   {
+          //     required: true,
+          //     message: '工序描述为必填项',
+          //   },
+          // ]}
           width="md"
           name="description"
           label="工序描述"
@@ -287,12 +287,12 @@ const ProcessManagement: React.FC = () => {
           placeholder="请输入工序名称"
         />
         <ProFormTextArea
-          rules={[
-            {
-              required: true,
-              message: '工序描述为必填项',
-            },
-          ]}
+          // rules={[
+          //   {
+          //     required: true,
+          //     message: '工序描述为必填项',
+          //   },
+          // ]}
           width="md"
           name="description"
           label="工序描述"
