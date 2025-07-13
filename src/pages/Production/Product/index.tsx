@@ -418,6 +418,7 @@ const ProductManagement: React.FC = () => {
         title="新建产品"
         width="600px"
         open={createModalOpen}
+        key={createModalOpen ? 'create' : 'create-closed'} // 添加 key 属性强制重新渲染
         onOpenChange={handleModalOpen}
         onFinish={handleCreate}
         layout="horizontal"

@@ -22,6 +22,7 @@ const PermissionManagement: React.FC = () => {
   const [autoExpandParent, setAutoExpandParent] = useState<boolean>(true);
   const [treeData, setTreeData] = useState<DataNode[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [roleDetail, setRoleDetail] = useState<any>(null); // 添加角色详情状态
   const location = useLocation();
   
   // 获取URL参数
@@ -114,16 +115,78 @@ const PermissionManagement: React.FC = () => {
   const fetchRolePermissions = async (roleId: string) => {
     try {
       const response = await getRoleDetail(parseInt(roleId));
-      if (response.success && response.data?.authVOList) {
+      if (response.success && response.data) {
+        // 保存角色详情
+        setRoleDetail(response.data);
+        
         // 从角色详情中提取已有的权限menuId
-        const existingPermissions = response.data.authVOList.map(auth => auth.menuId.toString());
+        const existingPermissions = response.data.authVOList?.map(auth => auth.menuId.toString()) || [];
         setCheckedKeys(existingPermissions);
         console.log('角色已有权限:', existingPermissions);
+        console.log('角色详情:', response.data);
       } else {
         console.warn('获取角色权限失败:', response.message);
       }
     } catch (error) {
       console.error('获取角色权限失败:', error);
+    }
+  };
+
+  // 保存权限配置
+  const handleSave = async () => {
+    try {
+      if (isFromRole) {
+        // 构建权限保存参数
+        const authSaveParamList = checkedKeys.map(menuCode => {
+          // 如果menuCode是数字字符串，直接使用；否则尝试从权限数据中找到对应的id
+          const menuId = /^\d+$/.test(menuCode.toString()) 
+            ? parseInt(menuCode.toString()) 
+            : 0; // 如果无法转换，使用0作为默认值
+          
+          return {
+            menuId,
+            roleId: parseInt(roleId) || 0
+          };
+        });
+
+        const saveParams: PermissionSaveParam = {
+          authSaveParamList,
+          companyId: roleDetail?.companyId || 0,
+          del: 0,
+          id: parseInt(roleId) || 0,
+          roleCode: roleDetail?.roleCode || '', // 使用从角色详情获取的正确roleCode
+          roleName: roleDetail?.roleName || roleName || ''
+        };
+
+        console.log('保存权限参数:', saveParams);
+        
+        const response = await saveOrUpdatePermission(saveParams);
+        
+        if (response.success) {
+          console.log(`保存角色 ${roleName}(${roleId}) 的权限成功:`, checkedKeys);
+          message.success(`角色 ${roleName} 权限设置成功`);
+          
+          // 立即返回角色管理页面
+          history.push('/system/role');
+        } else {
+          message.error(response.message || '保存失败');
+        }
+      } else {
+        // 系统权限配置保存（如果需要的话）
+        message.success('权限配置保存成功');
+      }
+    } catch (error) {
+      console.error('保存权限失败:', error);
+      message.error('保存失败，请重试');
+    }
+  };
+
+  // 重置权限（更新为从API获取）
+  const handleReset = async () => {
+    if (isFromRole && roleId) {
+      await fetchRolePermissions(roleId);
+    } else {
+      setCheckedKeys([]);
     }
   };
 
@@ -170,67 +233,9 @@ const PermissionManagement: React.FC = () => {
     console.log('选中的权限:', checkedKeysValue);
   };
 
-  // 保存权限配置
-  const handleSave = async () => {
-    try {
-      if (isFromRole) {
-        // 构建权限保存参数
-        const authSaveParamList = checkedKeys.map(menuCode => {
-          // 如果menuCode是数字字符串，直接使用；否则尝试从权限数据中找到对应的id
-          const menuId = /^\d+$/.test(menuCode.toString()) 
-            ? parseInt(menuCode.toString()) 
-            : 0; // 如果无法转换，使用0作为默认值
-          
-          return {
-            menuId,
-            roleId: parseInt(roleId) || 0
-          };
-        });
-
-        const saveParams: PermissionSaveParam = {
-          authSaveParamList,
-          companyId: 0,
-          del: 0,
-          id: parseInt(roleId) || 0,
-          roleCode: roleId || '',
-          roleName: roleName || ''
-        };
-
-        console.log('保存权限参数:', saveParams);
-        
-        const response = await saveOrUpdatePermission(saveParams);
-        
-        if (response.success) {
-          console.log(`保存角色 ${roleName}(${roleId}) 的权限成功:`, checkedKeys);
-          message.success(`角色 ${roleName} 权限设置成功`);
-          
-          // 立即返回角色管理页面
-          history.push('/system/role');
-        } else {
-          message.error(response.message || '保存失败');
-        }
-      } else {
-        // 系统权限配置保存（如果需要的话）
-        message.success('权限配置保存成功');
-      }
-    } catch (error) {
-      console.error('保存权限失败:', error);
-      message.error('保存失败，请重试');
-    }
-  };
-
   // 返回角色管理页面
   const handleBack = () => {
     history.push('/system/role');
-  };
-
-  // 重置权限（更新为从API获取）
-  const handleReset = async () => {
-    if (isFromRole && roleId) {
-      await fetchRolePermissions(roleId);
-    } else {
-      setCheckedKeys([]);
-    }
   };
 
   // 判断是否全选
@@ -318,15 +323,16 @@ const PermissionManagement: React.FC = () => {
                 type="primary" 
                 size="large"
                 onClick={handleSave}
+                disabled={checkedKeys.length === 0} // 没有选择权限时禁用按钮
               >
                 {isFromRole ? '保存并返回' : '保存权限配置'}
               </Button>
-              <Button 
+              {/* <Button 
                 size="large"
                 onClick={handleReset}
               >
                 重置
-              </Button>
+              </Button> */}
               {isFromRole && (
                 <Button 
                   size="large"

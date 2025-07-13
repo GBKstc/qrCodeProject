@@ -45,7 +45,7 @@ const RoleManagement: React.FC = () => {
       },
     },
     {
-      title: '备注',
+      title: '职能描述',
       dataIndex: 'remark',
       width: 200,
       ellipsis: true,
@@ -250,11 +250,13 @@ const RoleManagement: React.FC = () => {
         width="500px"
         open={createModalOpen}
         onOpenChange={handleModalOpen}
+        key={createModalOpen ? 'create' : 'create-closed'} // 添加 key 属性强制重新渲染
         onFinish={async (value) => {
           try {
             const result = await addRole({
               roleCode: value.roleCode,
               roleName: value.roleName,
+              remark: value.remark, // 添加备注字段
               companyId: 0, // 根据实际需求设置
               del: 0,
               authSaveParamList: [], // 新建时权限列表为空，后续通过权限设置页面配置
@@ -298,6 +300,15 @@ const RoleManagement: React.FC = () => {
           label="角色名称"
           placeholder="请输入角色名称"
         />
+        <ProFormTextArea
+          width="md"
+          name="remark"
+          label="职能描述"
+          placeholder="请输入职能描述"
+          fieldProps={{
+            rows: 3,
+          }}
+        />
       </ModalForm>
 
       {/* 编辑角色弹窗 */}
@@ -309,6 +320,7 @@ const RoleManagement: React.FC = () => {
         initialValues={{
           roleCode: currentRecord?.roleCode,
           roleName: currentRecord?.roleName,
+          remark: currentRecord?.remark, // 添加备注初始值
         }}
         onFinish={async (value) => {
           try {
@@ -316,6 +328,7 @@ const RoleManagement: React.FC = () => {
               id: currentRecord?.id,
               roleCode: value.roleCode,
               roleName: value.roleName,
+              remark: value.remark, // 添加备注字段
               companyId: currentRecord?.companyId || 0,
               del: 0,
               authSaveParamList: currentRecord?.authVOList?.map(auth => ({
@@ -361,6 +374,15 @@ const RoleManagement: React.FC = () => {
           name="roleName"
           label="角色名称"
           placeholder="请输入角色名称"
+        />
+        <ProFormTextArea
+          width="md"
+          name="remark"
+          label="职能描述"
+          placeholder="请输入职能描述"
+          fieldProps={{
+            rows: 3,
+          }}
         />
       </ModalForm>
     </PageContainer>

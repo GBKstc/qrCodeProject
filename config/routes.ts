@@ -15,6 +15,7 @@ export default [
     name: 'welcome',
     icon: 'smile',
     component: './Welcome',
+    hideInMenu: true,
   },
   {
     path: '/system',
@@ -90,7 +91,7 @@ export default [
   },
   {
     path: '/',
-    redirect: '/welcome',
+    component: './RedirectToFirstPage', // 新增重定向组件
   },
   {
     path: '*',

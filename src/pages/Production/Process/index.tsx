@@ -39,9 +39,9 @@ const ProcessManagement: React.FC = () => {
 
   const columns: ProColumns<ProcessItem>[] = [
     {
-      title: '序号',
+      title: '工序序号',
       dataIndex: 'sequence',
-      valueType: 'indexBorder',
+      // valueType: 'indexBorder',
       width: 80,
       // render: (_, record) => record.sequence,
     },
@@ -218,6 +218,8 @@ const ProcessManagement: React.FC = () => {
         width="400px"
         open={createModalOpen}
         onOpenChange={handleModalOpen}
+        key={createModalOpen ? 'create' : 'create-closed'} // 添加 key 属性强制重新渲染
+        initialValues={{}} // 添加空的初始值
         onFinish={handleCreate}
       >
         <ProFormText

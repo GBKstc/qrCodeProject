@@ -1,5 +1,5 @@
 import { outLogin } from '@/services/ant-design-pro/api';
-import { LogoutOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons';
+import { LogoutOutlined } from '@ant-design/icons';
 import { history, useModel } from '@umijs/max';
 import { Spin } from 'antd';
 import { createStyles } from 'antd-style';
@@ -61,7 +61,6 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, childre
         loginOut();
         return;
       }
-      history.push(`/account/${key}`);
     },
     [setInitialState],
   );
@@ -94,23 +93,6 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, childre
   }
 
   const menuItems = [
-    ...(menu
-      ? [
-          {
-            key: 'center',
-            icon: <UserOutlined />,
-            label: '个人中心',
-          },
-          {
-            key: 'settings',
-            icon: <SettingOutlined />,
-            label: '个人设置',
-          },
-          {
-            type: 'divider' as const,
-          },
-        ]
-      : []),
     {
       key: 'logout',
       icon: <LogoutOutlined />,

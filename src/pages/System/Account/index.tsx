@@ -48,7 +48,7 @@ const AccountList: React.FC = () => {
     {
       title: '账号',
       dataIndex: 'mobile',
-      tip: '账户手机号',
+      // tip: '账户手机号',
       render: (dom, entity) => {
         return (
           <a
@@ -134,15 +134,15 @@ const AccountList: React.FC = () => {
       dataIndex: 'option',
       valueType: 'option',
       render: (_, record) => [
-        // <a
-        //   key="config"
-        //   onClick={() => {
-        //     handleUpdateModalOpen(true);
-        //     setCurrentRow(record);
-        //   }}
-        // >
-        //   <FormattedMessage id="pages.searchTable.config" defaultMessage="编辑" />
-        // </a>,
+        <a
+          key="config"
+          onClick={() => {
+            handleUpdateModalOpen(true);
+            setCurrentRow(record);
+          }}
+        >
+          <FormattedMessage id="pages.searchTable.config" defaultMessage="编辑" />
+        </a>,
         <Popconfirm
           title="确认删除"
           description="确定要删除这个账户吗？此操作不可恢复。"
@@ -367,14 +367,26 @@ const AccountList: React.FC = () => {
         width="400px"
         open={updateModalOpen}
         onOpenChange={handleUpdateModalOpen}
-        initialValues={currentRow}
+        initialValues={{
+          ...currentRow,
+          password: undefined, // 确保密码字段不显示原值
+          roleList: currentRow?.authVOList?.map((role: any) => role.roleId || role.id) || [], // 正确映射角色ID
+        }}
         key={currentRow?.id}
         onFinish={async (value) => {
           try {
-            await updateAccount({
+            // 构建更新参数，如果密码为空则不传递密码字段
+            const updateParams: any = {
               ...value,
               id: currentRow?.id,
-            } as API.AccountSaveParam);
+            };
+            
+            // 如果密码为空或未填写，则删除密码字段
+            if (!value.password || value.password.trim() === '') {
+              delete updateParams.password;
+            }
+            
+            await updateAccount(updateParams as API.AccountSaveParam);
             handleUpdateModalOpen(false);
             setCurrentRow(undefined);
             message.success('更新成功');
@@ -388,6 +400,7 @@ const AccountList: React.FC = () => {
           }
         }}
       >
+        {/* 编辑账户表单中的账号字段 */}
         <ProFormText
           rules={[
             {
@@ -398,16 +411,26 @@ const AccountList: React.FC = () => {
               pattern: /^1[3-9]\d{9}$/,
               message: '请输入正确的手机号格式',
             },
+            {
+              max: 20,
+              message: '账号长度不能超过20个字符',
+            },
           ]}
           label="账号"
           name="mobile"
           placeholder="请输入手机号作为账号"
         />
+        
+        {/* 编辑账户表单中的成员姓名字段 */}
         <ProFormText
           rules={[
             {
               required: true,
               message: '成员姓名为必填项',
+            },
+            {
+              max: 20,
+              message: '成员姓名长度不能超过20个字符',
             },
           ]}
           label="成员姓名"
@@ -432,6 +455,7 @@ const AccountList: React.FC = () => {
           name="password"
           fieldProps={{
             type: 'password',
+            autoComplete: 'new-password', // 防止浏览器自动填充
           }}
           placeholder="不修改请留空"
         />

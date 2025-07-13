@@ -154,9 +154,9 @@ export const errorConfig: RequestConfig = {
         return response;
       }
 
-      if (data?.success === false) {
-        message.error('请求失败！');
-      }
+      // if (data?.success === false) {
+      //   message.error('请求失败！');
+      // }
       return response;
     },
   ],
