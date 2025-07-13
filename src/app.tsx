@@ -123,6 +123,23 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       );
     },
     ...initialState?.settings,
+    
+    // 添加全局面包屑配置
+    breadcrumbRender: (routers = []) => {
+      return routers.map((router, index) => {
+        // 所有面包屑项都显示为不可点击的文本
+        return {
+          ...router,
+          linkPath: undefined, // 移除链接路径，使其不可点击
+        };
+      });
+    },
+    
+    // 或者使用 itemRender 方式
+    itemRender: (route, params, routes, paths) => {
+      // 所有面包屑项都显示为普通文本，不可点击
+      return <span>{route.breadcrumbName}</span>;
+    },
   };
 };
 

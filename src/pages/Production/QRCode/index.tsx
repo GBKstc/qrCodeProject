@@ -49,9 +49,9 @@ const QRCodeManagement: React.FC = () => {
   const handleCreate = async (values: any) => {
     try {
       const response = await saveOrUpdateQRCode({
-        batchCode: values.batchCode,
+        // batchCode: values.batchCode, // 移除批次号
         num: values.num,
-        sort: values.sort,
+        // sort: values.sort, // 移除排序
         url: values.url,
       });
       
@@ -145,19 +145,17 @@ const QRCodeManagement: React.FC = () => {
       dataIndex: 'batchCode',
       copyable: true,
       ellipsis: true,
-      // width: 150,
       fixed: 'left', // 固定左侧重要列
     },
     {
       title: '编号',
       dataIndex: 'code',
-      // width: 100, // 减少宽度
       ellipsis: true,
+      hideInTable: true, // 隐藏编号列
     },
     {
       title: '数量',
       dataIndex: 'num',
-      // width: 80, // 减少宽度
       search: false,
       render: (text) => (
         <span style={{ fontWeight: 'bold', color: '#1890ff' }}>
@@ -168,18 +166,16 @@ const QRCodeManagement: React.FC = () => {
     {
       title: '排序',
       dataIndex: 'sort',
-      // width: 60, // 减少宽度
       search: false,
-      // hideInTable: true, // 在小屏幕隐藏非关键列
-      responsive: ['lg'], // 只在大屏幕显示
+      responsive: ['lg'],
+      hideInTable: true, // 隐藏排序列
     },
     {
       title: '访问URL',
       dataIndex: 'url',
       ellipsis: true,
       search: false,
-      // hideInTable: true, // 在表格中隐藏，可通过详情查看
-      responsive: ['xl'], // 只在超大屏幕显示
+      responsive: ['xl'],
       render: (text) => (
         <a href={text} target="_blank" rel="noopener noreferrer">
           {text}
@@ -189,23 +185,19 @@ const QRCodeManagement: React.FC = () => {
     {
       title: '设备ID',
       dataIndex: 'deviceId',
-      // width: 80, // 减少宽度
       search: false,
-      // hideInTable: true,
       responsive: ['lg'],
+      hideInTable: true, // 隐藏设备ID列
     },
     {
       title: '操作人',
       dataIndex: 'operateName',
-      // width: 100, // 减少宽度
       ellipsis: true,
-      // hideInTable: true,
-      responsive: ['md'], // 中等屏幕以上显示
+      responsive: ['md'],
     },
     {
       title: '状态',
       dataIndex: 'status',
-      // width: 80, // 减少宽度
       render: (_, record) => {
         const statusMap = {
           0: { text: '未使用', color: 'blue' },
@@ -223,9 +215,7 @@ const QRCodeManagement: React.FC = () => {
       title: '创建时间',
       dataIndex: 'createTime',
       valueType: 'dateTime',
-      // width: 140, // 减少宽度
       search: false,
-      // hideInTable: true,
       responsive: ['lg'],
     },
     {
@@ -233,25 +223,24 @@ const QRCodeManagement: React.FC = () => {
       dataIndex: 'remark',
       ellipsis: true,
       search: false,
-      // hideInTable: true,
       responsive: ['xl'],
+      hideInTable: true, // 隐藏备注列
     },
     {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      // width: 120, // 减少宽度
       fixed: 'right', // 固定右侧操作列
       render: (_, record) => [
-        <a
-          key="edit"
-          onClick={() => {
-            setCurrentRecord(record);
-            handleUpdateModalOpen(true);
-          }}
-        >
-          <EditOutlined /> 编辑
-        </a>,
+        // <a
+        //   key="edit"
+        //   onClick={() => {
+        //     setCurrentRecord(record);
+        //     handleUpdateModalOpen(true);
+        //   }}
+        // >
+        //   <EditOutlined /> 编辑
+        // </a>,
         <a
           key="export"
           onClick={() => {
@@ -344,36 +333,21 @@ const QRCodeManagement: React.FC = () => {
         open={createModalOpen}
         onOpenChange={handleModalOpen}
         onFinish={handleCreate}
+        key={createModalOpen ? 'create' : 'create-closed'} // 添加 key 属性强制重新渲染
+        initialValues={{
+          url: 'http://175.24.15.119:90/' // 添加默认URL值
+        }}
       >
-        <ProFormText
-          rules={[
-            { required: true, message: '批次号为必填项' },
-          ]}
-          width="md"
-          name="batchCode"
-          label="批次号"
-          placeholder="请输入二维码批次号"
-        />
         <ProFormDigit
           rules={[
             { required: true, message: '数量为必填项' },
-            { min: 1, message: '数量必须大于0' },
+            // { min: 1, message: '数量必须大于0' },
           ]}
           width="md"
           name="num"
           label="数量"
           placeholder="请输入二维码数量"
           min={1}
-          fieldProps={{
-            precision: 0,
-          }}
-        />
-        <ProFormDigit
-          width="md"
-          name="sort"
-          label="排序"
-          placeholder="请输入排序号"
-          min={0}
           fieldProps={{
             precision: 0,
           }}
