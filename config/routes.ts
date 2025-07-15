@@ -58,6 +58,12 @@ export default [
         component: './Production/Process',
       },
       {
+        path: '/production/equipment',
+        name: 'equipment',
+        access: 'canViewEquipment',
+        component: './Production/Equipment',
+      },
+      {
         path: '/production/equipment-overview',
         name: 'equipmentOverview',
         access: 'canViewEquipment',
@@ -80,6 +86,12 @@ export default [
         name: 'productionInfo',
         access: 'canViewProductionInfo',
         component: './Production/ProductionInfo',
+      },
+      {
+        path: '/production/infowb',
+        name: 'productionInfowb',
+        access: 'canViewProductionInfo',
+        component: './Production/ProductionInfoWb',
       },
       {
         path: '/production/display',

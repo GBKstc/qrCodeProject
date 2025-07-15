@@ -183,15 +183,15 @@ const Login: React.FC = () => {
             ]}
           />
           
-          <div
+          {/* <div
             style={{
               marginBottom: 24,
             }}
           >
             <ProFormCheckbox noStyle name="autoLogin">
-              自动登录
+              记住密码
             </ProFormCheckbox>
-          </div>
+          </div> */}
         </LoginForm>
       </div>
     </div>

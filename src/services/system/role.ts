@@ -85,3 +85,12 @@ export async function getAllRoles(options?: { [key: string]: any }) {
     ...(options || {}),
   });
 }
+
+/** 禁用/启用角色 GET /api/dcPlatRole/disable */
+export async function disableRole(id: any, options?: { [key: string]: any }) {
+  return request<API.SystemCommonResponse>('/api/dcPlatRole/changeStatus', {
+    method: 'GET',
+    params: { id },
+    ...(options || {}),
+  });
+}

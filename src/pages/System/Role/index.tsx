@@ -6,12 +6,13 @@ import {
   PageContainer,
   ProFormText,
   ProFormTextArea,
+  ProFormSwitch,
   ProTable,
 } from '@ant-design/pro-components';
-import { Button, message, Popconfirm, Space } from 'antd';
+import { Button, message, Popconfirm, Space, Switch, Tag } from 'antd';
 import React, { useRef, useState } from 'react';
 import { history } from 'umi';
-import { getRoleList, addRole, updateRole, removeRole, batchRemoveRole } from '@/services/system/role';
+import { getRoleList, addRole, updateRole, removeRole, batchRemoveRole, disableRole } from '@/services/system/role';
 
 const RoleManagement: React.FC = () => {
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
@@ -24,13 +25,13 @@ const RoleManagement: React.FC = () => {
     {
       title: '角色编码',
       dataIndex: 'roleCode',
-      width: 120,
+      // width: 120,
       hideInTable: false,
     },
     {
       title: '角色名称',
       dataIndex: 'roleName',
-      width: 150,
+      // width: 150,
       render: (dom, entity) => {
         return (
           <a
@@ -45,16 +46,47 @@ const RoleManagement: React.FC = () => {
       },
     },
     {
+      title: '是否启用',
+      dataIndex: 'status',
+      width: 100,
+      hideInSearch: true,
+      render: (_, record) => (
+        <Switch
+          checked={record.status === 0}
+          onChange={async (checked) => {
+            try {
+              await disableRole(record.id);
+              message.success('状态更新成功');
+              actionRef.current?.reload();
+            } catch (error) {
+              message.error('状态更新失败');
+            }
+          }}
+        />
+      ),
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      // width: 80,
+      hideInSearch: true,
+      render: (_, record) => (
+        <Tag color={record.status === 0 ? 'green' : 'red'}>
+          {record.status === 0 ? '启用' : '禁用'}
+        </Tag>
+      ),
+    },
+    {
       title: '职能描述',
       dataIndex: 'remark',
-      width: 200,
+      // width: 200,
       ellipsis: true,
       search: false,
     },
     {
       title: '操作人',
       dataIndex: 'operatorName',
-      width: 120,
+      // width: 120,
       search: false,
     },
     {
@@ -62,14 +94,14 @@ const RoleManagement: React.FC = () => {
       sorter: true,
       dataIndex: 'createTime',
       valueType: 'dateTime',
-      width: 160,
+      // width: 160,
       search: false,
     },
     {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      width: 200,
+      // width: 200,
       render: (_, record) => (
         <Space>
           <Button
@@ -152,11 +184,27 @@ const RoleManagement: React.FC = () => {
         ]}
         request={async (params, sort, filter) => {
           try {
+            // 处理排序参数
+            let sortType;
+            let sortOrder;
+            
+            if (sort && Object.keys(sort).length > 0) {
+              const sortKey = Object.keys(sort)[0];
+              const sortValue = sort[sortKey];
+              
+              if (sortKey === 'createTime') {
+                sortType = 1; // 1表示创建时间排序
+                sortOrder = sortValue === 'ascend' ? 'asc' : 'desc';
+              }
+            }
+            
             const response = await getRoleList({
               currPage: params.current || 1,
               pageSize: params.pageSize || 10,
               roleName: params.roleName,
               roleCode: params.roleCode,
+              sortType: sortType,
+              sortOrder: sortOrder,
               ...params,
             });
             
@@ -184,11 +232,11 @@ const RoleManagement: React.FC = () => {
           }
         }}
         columns={columns}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
-        }}
+        // rowSelection={{
+        //   onChange: (_, selectedRows) => {
+        //     setSelectedRows(selectedRows);
+        //   },
+        // }}
       />
       {selectedRowsState?.length > 0 && (
         <FooterToolbar
@@ -250,16 +298,20 @@ const RoleManagement: React.FC = () => {
         width="500px"
         open={createModalOpen}
         onOpenChange={handleModalOpen}
-        key={createModalOpen ? 'create' : 'create-closed'} // 添加 key 属性强制重新渲染
+        key={createModalOpen ? 'create' : 'create-closed'}
+        initialValues={{
+          status: true, // 默认启用状态（对应后端的0）
+        }}
         onFinish={async (value) => {
           try {
             const result = await addRole({
               roleCode: value.roleCode,
               roleName: value.roleName,
-              remark: value.remark, // 添加备注字段
-              companyId: 0, // 根据实际需求设置
+              remark: value.remark,
+              companyId: 0,
+              status: value.status ? 0 : 1, // true->0(启用), false->1(禁用)
               del: 0,
-              authSaveParamList: [], // 新建时权限列表为空，后续通过权限设置页面配置
+              authSaveParamList: [],
             });
             if (result.success) {
               message.success('创建成功');
@@ -309,6 +361,12 @@ const RoleManagement: React.FC = () => {
             rows: 3,
           }}
         />
+        {/* <ProFormSwitch
+          name="status"
+          label="是否启用"
+          checkedChildren="启用"
+          unCheckedChildren="禁用"
+        /> */}
       </ModalForm>
 
       {/* 编辑角色弹窗 */}
@@ -320,7 +378,8 @@ const RoleManagement: React.FC = () => {
         initialValues={{
           roleCode: currentRecord?.roleCode,
           roleName: currentRecord?.roleName,
-          remark: currentRecord?.remark, // 添加备注初始值
+          remark: currentRecord?.remark,
+          status: currentRecord?.status === 0, // 0->true(启用), 1->false(禁用)
         }}
         onFinish={async (value) => {
           try {
@@ -328,8 +387,9 @@ const RoleManagement: React.FC = () => {
               id: currentRecord?.id,
               roleCode: value.roleCode,
               roleName: value.roleName,
-              remark: value.remark, // 添加备注字段
+              remark: value.remark,
               companyId: currentRecord?.companyId || 0,
+              status: value.status ? 0 : 1, // true->0(启用), false->1(禁用)
               del: 0,
               authSaveParamList: currentRecord?.authVOList?.map(auth => ({
                 menuId: auth.menuId,
@@ -384,6 +444,12 @@ const RoleManagement: React.FC = () => {
             rows: 3,
           }}
         />
+        {/* <ProFormSwitch
+          name="status"
+          label="是否启用"
+          checkedChildren="启用"
+          unCheckedChildren="禁用"
+        /> */}
       </ModalForm>
     </PageContainer>
   );

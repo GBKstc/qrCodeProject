@@ -25,20 +25,26 @@ const EquipmentOverview: React.FC = () => {
       title: '序号',
       dataIndex: 'index',
       valueType: 'index',
-      width: 60,
+      // width: 60,
       search: false,
-
     },
     {
       title: '设备名称',
       dataIndex: 'name',
       ellipsis: true,
-      width: 150,
+      // width: 150,
+    },
+    {
+      title: '设备所在工序',
+      dataIndex: 'productionProcessesName',
+      ellipsis: true,
+      // width: 150,
+      search: false,
     },
     {
       title: '设备状态',
       dataIndex: 'status',
-      width: 100,
+      // width: 100,
       render: (_, record) => (
         <Badge
           status={statusMap[record.status]?.status || 'default'}
@@ -51,7 +57,7 @@ const EquipmentOverview: React.FC = () => {
       title: '设备类型',
       dataIndex: 'type',
       ellipsis: true,
-      width: 120,
+      // width: 120,
       search: false,
       valueEnum: {
         1: { text: '喷码机' },
@@ -61,7 +67,7 @@ const EquipmentOverview: React.FC = () => {
     {
       title: '二维码数量',
       dataIndex: 'qrcodeNum',
-      width: 120,
+      // width: 120,
       search: false,
       render: (text) => (
         <span style={{ fontWeight: 'bold', color: '#1890ff' }}>

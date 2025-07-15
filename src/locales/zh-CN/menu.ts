@@ -64,5 +64,6 @@ export default {
   'menu.production.qrcode': '二维码管理',
   'menu.production.product': '产品管理',
   'menu.production.productionInfo': '生产信息管理',
+  'menu.production.productionInfowb': '生产产品列表',
   'menu.production.display': '展示信息管理',
 };

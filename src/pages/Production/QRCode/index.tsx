@@ -11,6 +11,7 @@ import {
 import { Button, message, Popconfirm, Tag } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import { getQRCodeList, saveOrUpdateQRCode, exportQRCode, deleteQRCode, getEquipmentList } from '@/services/production';
+import { Tooltip } from 'antd';
 
 const QRCodeManagement: React.FC = () => {
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
@@ -226,7 +227,7 @@ const QRCodeManagement: React.FC = () => {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      fixed: 'right', // 固定右侧操作列
+      fixed: 'right',
       render: (_, record) => [
         // <a
         //   key="edit"
@@ -237,15 +238,24 @@ const QRCodeManagement: React.FC = () => {
         // >
         //   <EditOutlined /> 编辑
         // </a>,
+        // 在操作列中
+        record.status === 1 ? (
+        <Tooltip title="该二维码已使用，不允许重复导出" key="export">
+        <span style={{ color: '#ccc', cursor: 'not-allowed' }}>
+        <DownloadOutlined /> 已导出
+        </span>
+        </Tooltip>
+        ) : (
         <a
-          key="export"
-          onClick={() => {
-            setCurrentRecord(record);
-            setExportModalOpen(true);
-          }}
+        key="export"
+        onClick={() => {
+        setCurrentRecord(record);
+        setExportModalOpen(true);
+        }}
         >
-          <DownloadOutlined /> 导出
-        </a>,
+        <DownloadOutlined /> 导出
+        </a>
+        ),
         <Popconfirm
           key="delete"
           title="确认删除"

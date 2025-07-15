@@ -192,20 +192,6 @@ const ProductManagement: React.FC = () => {
     return true;
   };
 
-  // 模拟上传处理
-  const handleUpload = (file: File) => {
-    return new Promise((resolve) => {
-      // 模拟上传过程
-      setTimeout(() => {
-        const url = URL.createObjectURL(file);
-        resolve({
-          url,
-          status: 'done',
-          name: file.name,
-        });
-      }, 1000);
-    });
-  };
 
   // 真实图片上传处理
   const handleRealUpload = async (file: File) => {
@@ -313,7 +299,7 @@ const ProductManagement: React.FC = () => {
       dataIndex: 'remark',
       search: false,
       ellipsis: true,
-      // width: 120,
+      hideInTable: true, // 隐藏备注列
     },
     {
       title: '创建时间',
@@ -350,6 +336,28 @@ const ProductManagement: React.FC = () => {
       ],
     },
   ];
+
+  const handlePreview = (file) => {
+    console.log(file,'file')
+    // 优先获取直接的url字段（编辑时的现有文件）
+    let imageUrl = file.url;
+    
+    // 如果没有直接的url，尝试从response中获取（重新上传的文件）
+    if (!imageUrl && file.response) {
+      imageUrl = file.response.url || file.response.response?.url;
+    }
+    
+    // 如果还是没有，尝试thumbUrl
+    if (!imageUrl) {
+      imageUrl = file.thumbUrl;
+    }
+    
+    if (imageUrl) {
+      window.open(imageUrl);
+    } else {
+      console.error('无法获取图片URL', file);
+    }
+  }
 
   return (
     <PageContainer>
@@ -455,7 +463,9 @@ const ProductManagement: React.FC = () => {
           name="productThumb"
           label="产品图片"
           max={1}
+          
           fieldProps={{
+            onPreview:handlePreview,
             name: 'file',
             listType: 'picture-card',
             beforeUpload,
@@ -467,7 +477,7 @@ const ProductManagement: React.FC = () => {
                     uid: file.uid || Date.now().toString(),
                     name: file.name,
                     status: 'done',
-                    url: response.data,
+                    url: response.url,
                     response: response, // 保留原始响应
                   };
                   onSuccess?.(fileObj, file);
@@ -485,6 +495,7 @@ const ProductManagement: React.FC = () => {
           label="商标图片"
           max={1}
           fieldProps={{
+            onPreview:handlePreview,
             name: 'file',
             listType: 'picture-card',
             beforeUpload,
@@ -497,7 +508,7 @@ const ProductManagement: React.FC = () => {
                     uid: file.uid || Date.now().toString(),
                     name: file.name,
                     status: 'done',
-                    url: response.data,
+                    url: response.url,
                     response: response, // 保留原始响应
                   };
                   onSuccess?.(fileObj, file);
@@ -579,6 +590,7 @@ const ProductManagement: React.FC = () => {
           label="产品图片"
           max={1}
           fieldProps={{
+            onPreview:handlePreview,
             name: 'file',
             listType: 'picture-card',
             beforeUpload,
@@ -609,6 +621,7 @@ const ProductManagement: React.FC = () => {
           label="商标图片"
           max={1}
           fieldProps={{
+            onPreview:handlePreview,
             name: 'file',
             listType: 'picture-card',
             beforeUpload,
@@ -620,7 +633,7 @@ const ProductManagement: React.FC = () => {
                     uid: file.uid || Date.now().toString(),
                     name: file.name,
                     status: 'done',
-                    url: response.url, // 这是关键：设置图片URL
+                    url: response.url,
                     response: response,
                   };
                   onSuccess?.(fileObj, file);

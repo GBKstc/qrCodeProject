@@ -4,6 +4,7 @@ import {
   ModalForm,
   PageContainer,
   ProFormSelect,
+  ProFormSwitch,
   ProFormText,
   ProFormTextArea,
   ProTable,
@@ -106,29 +107,26 @@ const AccountList: React.FC = () => {
       valueType: 'dateTime',
       hideInSearch: true,
     },
-    // {
-    //   title: '是否启用',
-    //   dataIndex: 'del',
-    //   hideInForm: true,
-    //   hideInSearch: true,
-    //   render: (_, record) => (
-    //     <Switch
-    //       checked={record.del === 0}
-    //       onChange={async (checked) => {
-    //         try {
-    //           await updateAccount({
-    //             ...record,
-    //             del: checked ? 0 : 1,
-    //           });
-    //           message.success('状态更新成功');
-    //           actionRef.current?.reload();
-    //         } catch (error) {
-    //           message.error('状态更新失败');
-    //         }
-    //       }}
-    //     />
-    //   ),
-    // },
+    {
+      title: '是否启用',
+      dataIndex: 'del',
+      hideInForm: true,
+      hideInSearch: true,
+      render: (_, record) => (
+        <Switch
+          checked={record.del === 0}
+          onChange={async (checked) => {
+            try {
+              await disableAccount(record.id);
+              message.success('状态更新成功');
+              actionRef.current?.reload();
+            } catch (error) {
+              message.error('状态更新失败');
+            }
+          }}
+        />
+      ),
+    },
     {
       title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="操作" />,
       dataIndex: 'option',
@@ -189,12 +187,31 @@ const AccountList: React.FC = () => {
             <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="新建" />
           </Button>,
         ]}
-        request={async (params) => {
+        request={async (params, sort, filter) => {
           try {
+            // 处理排序参数
+            let sortType;
+            let sortOrder;
+            
+            if (sort && Object.keys(sort).length > 0) {
+              const sortKey = Object.keys(sort)[0];
+              const sortValue = sort[sortKey];
+              
+              if (sortKey === 'createTime') {
+                sortType = 1; // 1表示创建时间排序
+                sortOrder = sortValue === 'ascend' ? 'asc' : 'desc';
+              } else if (sortKey === 'updateTime') {
+                sortType = 2; // 2表示登录时间排序
+                sortOrder = sortValue === 'ascend' ? 'asc' : 'desc';
+              }
+            }
+            
             const response = await getAccountList({
               ...params,
               currPage: params.current,
               pageSize: params.pageSize,
+              sortType: sortType,
+              sortOrder: sortOrder,
             });
             
             if (response.success) {
@@ -278,7 +295,13 @@ const AccountList: React.FC = () => {
         onOpenChange={handleModalOpen}
         onFinish={async (value) => {
           try {
-            await addAccount(value as API.AccountSaveParam);
+            // 设置默认启用状态
+            const accountData = {
+              ...value,
+              del: value.status ? 0 : 1, // true对应启用(0)，false对应禁用(1)
+            };
+            delete accountData.status; // 移除前端字段，使用del字段
+            await addAccount(accountData as API.AccountSaveParam);
             handleModalOpen(false);
             message.success('添加成功');
             if (actionRef.current) {
@@ -326,7 +349,7 @@ const AccountList: React.FC = () => {
           ]}
           name="roleList"
           label="授予权限(角色)"
-          mode="multiple"
+          // mode="multiple"
           options={roleOptions}
           placeholder="请选择角色"
         />
@@ -356,6 +379,13 @@ const AccountList: React.FC = () => {
             rows: 3,
           }}
         />
+        {/* <ProFormSwitch
+          label="是否启用"
+          name="status"
+          initialValue={true}
+          checkedChildren="启用"
+          unCheckedChildren="禁用"
+        /> */}
       </ModalForm>
       
       {/* 编辑账户表单 */}
@@ -369,19 +399,21 @@ const AccountList: React.FC = () => {
         onOpenChange={handleUpdateModalOpen}
         initialValues={{
           ...currentRow,
-          password: undefined, // 确保密码字段不显示原值
-          roleList: currentRow?.authVOList?.map((role: any) => role.roleId || role.id) || [], // 正确映射角色ID
+          password: undefined,
+          roleList: currentRow?.authVOList?.map((role: any) => role.roleId || role.id) || [],
+          status: currentRow?.del === 0, // 将del字段转换为布尔值
         }}
         key={currentRow?.id}
         onFinish={async (value) => {
           try {
-            // 构建更新参数，如果密码为空则不传递密码字段
             const updateParams: any = {
               ...value,
               id: currentRow?.id,
+              del: value.status ? 0 : 1, // true对应启用(0)，false对应禁用(1)
             };
             
-            // 如果密码为空或未填写，则删除密码字段
+            delete updateParams.status; // 移除前端字段，使用del字段
+            
             if (!value.password || value.password.trim() === '') {
               delete updateParams.password;
             }
@@ -446,7 +478,7 @@ const AccountList: React.FC = () => {
           ]}
           name="roleList"
           label="授予权限(角色)"
-          mode="multiple"
+          // mode="multiple"
           options={roleOptions}
           placeholder="请选择角色"
         />
@@ -467,6 +499,12 @@ const AccountList: React.FC = () => {
             rows: 3,
           }}
         />
+        {/* <ProFormSwitch
+          label="是否启用"
+          name="status"
+          checkedChildren="启用"
+          unCheckedChildren="禁用"
+        /> */}
       </ModalForm>
       
       <Drawer
@@ -483,10 +521,6 @@ const AccountList: React.FC = () => {
             <h3>账户详情</h3>
             <p><strong>姓名:</strong> {currentRow.name}</p>
             <p><strong>手机号:</strong> {currentRow.mobile}</p>
-            <p><strong>工号:</strong> {currentRow.workNumber}</p>
-            <p><strong>岗位:</strong> {currentRow.post}</p>
-            <p><strong>部门:</strong> {currentRow.dcDepartmentName}</p>
-            <p><strong>车间:</strong> {currentRow.dcProductLineName}</p>
             <p><strong>创建时间:</strong> {currentRow.createTime}</p>
             <p><strong>更新时间:</strong> {currentRow.updateTime}</p>
             <p><strong>状态:</strong> {currentRow.del === 0 ? '启用' : '禁用'}</p>
