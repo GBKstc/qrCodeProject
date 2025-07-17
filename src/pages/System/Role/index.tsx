@@ -48,7 +48,7 @@ const RoleManagement: React.FC = () => {
     {
       title: '是否启用',
       dataIndex: 'status',
-      width: 100,
+      // width: 100,
       hideInSearch: true,
       render: (_, record) => (
         <Switch
@@ -101,7 +101,7 @@ const RoleManagement: React.FC = () => {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      // width: 200,
+      width: 200,
       render: (_, record) => (
         <Space>
           <Button
@@ -132,14 +132,7 @@ const RoleManagement: React.FC = () => {
                   // 使用编辑接口进行软删除
                   const result = await updateRole({
                     id: record.id,
-                    roleCode: record.roleCode,
-                    roleName: record.roleName,
-                    companyId: record.companyId || 0,
                     del: 1, // 设置删除标记
-                    authSaveParamList: record.authVOList?.map(auth => ({
-                      menuId: auth.menuId,
-                      roleId: record.id,
-                    })) || [],
                   });
                   if (result.success) {
                     message.success('删除成功');
@@ -261,14 +254,7 @@ const RoleManagement: React.FC = () => {
                 const updatePromises = selectedRowsState.map(item => 
                   updateRole({
                     id: item.id,
-                    roleCode: item.roleCode,
-                    roleName: item.roleName,
-                    companyId: item.companyId || 0,
                     del: 1, // 设置删除标记
-                    authSaveParamList: item.authVOList?.map(auth => ({
-                      menuId: auth.menuId,
-                      roleId: item.id,
-                    })) || [],
                   })
                 );
                 
@@ -319,11 +305,11 @@ const RoleManagement: React.FC = () => {
               actionRef.current?.reload();
               return true;
             } else {
-              message.error(result.message || '创建失败');
+              // message.error(result.message || '创建失败');
               return false;
             }
           } catch (error) {
-            message.error('创建失败');
+            // message.error('创建失败');
             return false;
           }
         }}

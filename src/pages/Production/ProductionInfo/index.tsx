@@ -8,6 +8,7 @@ import {
 import { Button, Modal, QRCode, message } from 'antd';
 import React, { useRef, useState, useMemo } from 'react';
 import { getProductionInfoList, ProductionInfoItem } from '@/services/production/productionInfo';
+import { generateQRCodeUrl } from '@/utils/qrcode';
 
 const ProductionInfoManagement: React.FC = () => {
   const [detailModalOpen, setDetailModalOpen] = useState<boolean>(false);
@@ -38,10 +39,10 @@ const ProductionInfoManagement: React.FC = () => {
         search: false,
         render: (_, record) => (
           <QRCode
-            value={record.qrcodeUrl}
+            value={generateQRCodeUrl(record.qrcodeId)}
             size={50}
             style={{ cursor: 'pointer' }}
-            onClick={() => handleViewDetail(record)}
+            // onClick={() => handleViewDetail(record)}
           />
         ),
       },
@@ -80,6 +81,7 @@ const ProductionInfoManagement: React.FC = () => {
         dataIndex: 'colour',
         width: 100,
         ellipsis: true,
+        search: false,
       },
       {
         title: '生产时间',
@@ -114,20 +116,14 @@ const ProductionInfoManagement: React.FC = () => {
         dataIndex: 'shareProductTimeRange',
         valueType: 'dateTimeRange',
         hideInTable: true,
-        search: {
-          transform: (value) => {
-            return {
-              startShareProductTime: value[0],
-              endShareProductTime: value[1],
-            };
-          },
-        },
+        search: false,
       },
       {
         title: '展示批次号',
         dataIndex: 'shareBatchCode',
         width: 120,
         ellipsis: true,
+        search: false,
       },
       {
         title: '操作人',
@@ -341,6 +337,7 @@ const ProductionInfoManagement: React.FC = () => {
                   {
                     title: '釉色',
                     dataIndex: 'colour',
+
                     render: (text) => (
                       <span style={{ 
                         padding: '4px 8px', 

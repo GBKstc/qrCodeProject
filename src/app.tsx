@@ -11,6 +11,13 @@ import { errorConfig } from './requestErrorConfig';
 import React from 'react';
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
+const wbLoginPath = '/user/loginwb';
+
+// 获取对应的登录路径
+const getLoginPath = () => {
+  const loginType = localStorage.getItem('loginType');
+  return loginType === 'wb' ? wbLoginPath : loginPath;
+};
 
 /**
  * @see  https://umijs.org/zh-CN/plugins/plugin-initial-state
@@ -65,8 +72,10 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       const { location } = history;
       // 检查 localStorage 中的用户信息而不是 token
       const userInfo = localStorage.getItem('userInfo');
-      if (!userInfo && location.pathname !== loginPath) {
-        history.push(loginPath);
+      const currentLoginPath = getLoginPath();
+      
+      if (!userInfo && location.pathname !== loginPath && location.pathname !== wbLoginPath) {
+        history.push(currentLoginPath);
       }
     },
     bgLayoutImgList: [

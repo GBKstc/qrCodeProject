@@ -12,6 +12,7 @@ import { Button, message, Popconfirm, QRCode, Modal, Table, Switch } from 'antd'
 import React, { useRef, useState } from 'react';
 import { getProductionInfoList, ProductionInfoItem } from '@/services/production/productionInfo';
 import { request } from '@umijs/max';
+import { generateQRCodeUrl } from '@/utils/qrcode';
 
 // 展示模块接口类型
 interface ShowModuleItem {
@@ -221,7 +222,7 @@ const DisplayManagement: React.FC = () => {
       search: false,
       render: (_, record) => (
         <QRCode
-          value={record.qrcodeUrl}
+          value={generateQRCodeUrl(record.qrcodeId)}
           size={50}
         />
       ),

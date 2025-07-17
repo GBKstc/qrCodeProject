@@ -76,11 +76,11 @@ const EquipmentManagement: React.FC = () => {
         actionRef.current?.reload();
         return true;
       } else {
-        message.error(response.message || '创建失败');
+        // message.error(response.message || '创建失败');
         return false;
       }
     } catch (error) {
-      message.error('创建失败，请重试');
+      // message.error('创建失败，请重试');
       return false;
     }
   };

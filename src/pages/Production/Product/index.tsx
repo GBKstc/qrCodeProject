@@ -71,15 +71,15 @@ const ProductManagement: React.FC = () => {
         return true;
       } else {
         // 根据新的响应格式处理错误
-        const errorMsg = response.message || 
-                      response.reason?.errMsg || 
-                      '创建失败';
-        message.error(errorMsg);
+        // const errorMsg = response.message || 
+        //               response.reason?.errMsg || 
+        //               '创建失败';
+        // message.error(errorMsg);
         return false;
       }
     } catch (error) {
       console.error('创建产品失败:', error);
-      message.error('创建失败，请重试');
+      // message.error('创建失败，请重试');
       return false;
     }
   };

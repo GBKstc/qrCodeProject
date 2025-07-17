@@ -21,6 +21,7 @@ export async function getAllRolesWithPagination(options?: { [key: string]: any }
     params: {
       currPage: 1,
       pageSize: 999,
+      status:0
     },
     ...(options || {}),
   });

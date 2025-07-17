@@ -8,6 +8,11 @@ export default [
         path: '/user/login',
         component: './User/Login',
       },
+      {
+        name: 'loginwb',
+        path: '/user/loginwb',
+        component: './User/Login',
+      },
     ],
   },
   {

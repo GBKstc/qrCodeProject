@@ -124,7 +124,7 @@ const ProcessManagement: React.FC = () => {
       actionRef.current?.reload();
       return true;
     } catch (error) {
-      message.error('创建失败');
+      // message.error('创建失败');
       return false;
     }
   };
@@ -226,7 +226,7 @@ const ProcessManagement: React.FC = () => {
           rules={[
             {
               required: true,
-              message: '工序名称为必填项',
+              max: 20,
             },
           ]}
           width="md"
@@ -278,7 +278,7 @@ const ProcessManagement: React.FC = () => {
           rules={[
             {
               required: true,
-              message: '工序名称为必填项',
+              max: 20,
             },
           ]}
           width="md"

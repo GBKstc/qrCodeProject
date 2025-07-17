@@ -48,4 +48,5 @@ export const clearUserInfo = () => {
   localStorage.removeItem('userId');
   localStorage.removeItem('userPermissions');
   localStorage.removeItem('token');
+  localStorage.removeItem('loginType');
 };

@@ -22,11 +22,16 @@ export async function outLogin(options?: { [key: string]: any }) {
 }
 
 /** 登录接口 POST /api/login */
-export async function login(body: API.LoginParams, options?: { [key: string]: any }) {
+export async function login(body: API.LoginParams & { isWb?: number }, options?: { [key: string]: any }) {
   // 手动转换为表单数据格式
   const formData = new URLSearchParams();
   formData.append('userName', body.userName);
   formData.append('passWord', body.passWord);
+  
+  // 如果有isWb参数，添加到请求中
+  if (body.isWb !== undefined) {
+    formData.append('isWb', body.isWb.toString());
+  }
   
   return request<API.LoginResult>('/api/login', {
     method: 'POST',

@@ -24,21 +24,28 @@ export const AvatarName = () => {
 export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, children }) => {
   const loginOut = async () => {
     try {
-      await outLogin();
+      // await outLogin();
     } catch (error) {
       console.log('退出登录失败:', error);
     } finally {
+      // 获取登录类型，决定跳转到哪个登录页面
+      const loginType = localStorage.getItem('loginType');
+      const loginPath = loginType === 'wb' ? '/user/loginwb' : '/user/login';
+      
       // 清除本地存储的用户信息
       localStorage.removeItem('token');
       localStorage.removeItem('userName');
       localStorage.removeItem('userInfo');
+      localStorage.removeItem('loginType');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('userPermissions');
       
       const { search, pathname } = window.location;
       const urlParams = new URL(window.location.href).searchParams;
       const redirect = urlParams.get('redirect');
-      if (window.location.pathname !== '/user/login' && !redirect) {
+      if (window.location.pathname !== '/user/login' && window.location.pathname !== '/user/loginwb' && !redirect) {
         history.replace({
-          pathname: '/user/login',
+          pathname: loginPath,
           search: stringify({
             redirect: pathname + search,
           }),

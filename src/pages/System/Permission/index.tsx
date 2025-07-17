@@ -53,20 +53,20 @@ const PermissionManagement: React.FC = () => {
               .filter(level3 => level3.code.startsWith(level2.code) && level3.code !== level2.code)
               .map(level3 => ({
                 title: level3.name,
-                key: level3.code,
+                key: level3.id,
                 isLeaf: true,
               }));
 
             return {
               title: level2.name,
-              key: level2.code,
+              key: level2.id,
               children: children3.length > 0 ? children3 : undefined,
             };
           });
 
         return {
           title: level1.name,
-          key: level1.code,
+          key: level1.id,
           children: children2.length > 0 ? children2 : undefined,
         };
       });
@@ -120,7 +120,7 @@ const PermissionManagement: React.FC = () => {
         setRoleDetail(response.data);
         
         // 从角色详情中提取已有的权限menuId
-        const existingPermissions = response.data.authVOList?.map(auth => auth.menuId.toString()) || [];
+        const existingPermissions = response.data.authVOList?.map(auth => auth.menuId) || [];
         setCheckedKeys(existingPermissions);
         console.log('角色已有权限:', existingPermissions);
         console.log('角色详情:', response.data);
@@ -144,6 +144,7 @@ const PermissionManagement: React.FC = () => {
             : 0; // 如果无法转换，使用0作为默认值
           
           return {
+            // id: roleDetail?.authVOList?.find(auth => auth.menuId === menuId)?.id || 0,
             menuId,
             roleId: parseInt(roleId) || 0
           };

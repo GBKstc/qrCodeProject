@@ -9,7 +9,7 @@ import {
   ProFormCheckbox,
   ProFormText,
 } from '@ant-design/pro-components';
-import { FormattedMessage, history, useIntl, useModel, Helmet } from '@umijs/max';
+import { FormattedMessage, history, useIntl, useModel, Helmet, useLocation } from '@umijs/max';
 import { Alert, message } from 'antd';
 import Settings from '../../../../config/defaultSettings';
 import React, { useState } from 'react';
@@ -50,6 +50,10 @@ const Login: React.FC = () => {
   const { initialState, setInitialState } = useModel('@@initialState');
   const { styles } = useStyles();
   const intl = useIntl();
+  const location = useLocation();
+  
+  // 判断是否为wb登录
+  const isWbLogin = location.pathname === '/user/loginwb';
 
   // 在 handleSubmit 函数中，完善用户信息存储
   const handleSubmit = async (values: API.LoginParams) => {
@@ -58,10 +62,15 @@ const Login: React.FC = () => {
       setLoginError('');
       setUserLoginState({});
       
-      const loginParams = {
+      const loginParams: any = {
         userName: values.userName,
         passWord: values.passWord,
       };
+      
+      // 如果是wb登录，添加isWb参数
+      if (isWbLogin) {
+        loginParams.isWb = 1;
+      }
       
       const response = await login(loginParams);
       console.log('登录响应:', response);
@@ -78,6 +87,9 @@ const Login: React.FC = () => {
         localStorage.setItem('userName', data.name || data.username || '');
         localStorage.setItem('userInfo', JSON.stringify(data));
         localStorage.setItem('userId', data.id.toString());
+        
+        // 存储登录方式
+        localStorage.setItem('loginType', isWbLogin ? 'wb' : 'normal');
         
         // 如果后端返回 token，也存储
         if (data.token) {

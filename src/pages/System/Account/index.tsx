@@ -109,12 +109,12 @@ const AccountList: React.FC = () => {
     },
     {
       title: '是否启用',
-      dataIndex: 'del',
+      dataIndex: 'status',
       hideInForm: true,
       hideInSearch: true,
       render: (_, record) => (
         <Switch
-          checked={record.del === 0}
+          checked={record.status === 0}
           onChange={async (checked) => {
             try {
               await disableAccount(record.id);
@@ -236,11 +236,11 @@ const AccountList: React.FC = () => {
           }
         }}
         columns={columns}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
-        }}
+        // rowSelection={{
+        //   onChange: (_, selectedRows) => {
+        //     setSelectedRows(selectedRows);
+        //   },
+        // }}
       />
       {selectedRowsState?.length > 0 && (
         <div
@@ -409,7 +409,7 @@ const AccountList: React.FC = () => {
             const updateParams: any = {
               ...value,
               id: currentRow?.id,
-              del: value.status ? 0 : 1, // true对应启用(0)，false对应禁用(1)
+              // del: value.status ? 0 : 1, // true对应启用(0)，false对应禁用(1)
             };
             
             delete updateParams.status; // 移除前端字段，使用del字段
@@ -478,7 +478,7 @@ const AccountList: React.FC = () => {
           ]}
           name="roleList"
           label="授予权限(角色)"
-          // mode="multiple"
+          mode="multiple"
           options={roleOptions}
           placeholder="请选择角色"
         />

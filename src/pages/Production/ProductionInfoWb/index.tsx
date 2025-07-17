@@ -9,6 +9,7 @@ import { Button, Modal, QRCode, message } from 'antd';
 import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { getProductionInfoList, ProductionInfoItem } from '@/services/production/productionInfo';
 import { getDisplayList } from '@/services/production/display';
+import { generateQRCodeUrl } from '@/utils/qrcode';
 
 const ProductionInfoManagement: React.FC = () => {
   const [detailModalOpen, setDetailModalOpen] = useState<boolean>(false);
@@ -51,7 +52,7 @@ const ProductionInfoManagement: React.FC = () => {
       search: false,
       render: (_, record) => (
         <QRCode
-          value={record.qrcodeUrl}
+          value={generateQRCodeUrl(record.qrcodeId)}
           size={50}
           style={{ cursor: 'pointer' }}
           onClick={() => handleViewDetail(record)}
@@ -293,7 +294,7 @@ const ProductionInfoManagement: React.FC = () => {
                     render: () => (
                       <div style={{ textAlign: 'center', padding: '10px' }}>
                         <QRCode 
-                          value={currentRow.qrcodeUrl} 
+                          value={generateQRCodeUrl(currentRow.qrcodeId)} 
                           size={120} 
                           style={{ border: '1px solid #d9d9d9', borderRadius: '4px' }}
                         />
