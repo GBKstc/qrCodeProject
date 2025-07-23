@@ -6,6 +6,7 @@ import {
   ProDescriptions,
 } from '@ant-design/pro-components';
 import { Button, Modal, QRCode, message } from 'antd';
+import { ImagePreview } from '@/components';
 import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { getProductionInfoList, ProductionInfoItem } from '@/services/production/productionInfo';
 import { getDisplayList } from '@/services/production/display';
@@ -50,14 +51,34 @@ const ProductionInfoManagement: React.FC = () => {
       dataIndex: 'qrcodeUrl',
       width: 100,
       search: false,
-      render: (_, record) => (
-        <QRCode
-          value={generateQRCodeUrl(record.qrcodeId)}
-          size={50}
-          style={{ cursor: 'pointer' }}
-          onClick={() => handleViewDetail(record)}
-        />
-      ),
+      render: (_, record) => {
+        const qrCodeUrl = generateQRCodeUrl(record.qrcodeId);
+        return (
+          <div onClick={() => {
+                Modal.info({
+                  title: '二维码详情',
+                  content: (
+                    <div style={{paddingTop:"20px",marginLeft:'-22px',display: 'flex', justifyContent: 'center', alignItems: 'center',flexDirection: 'column'}}>
+                      <QRCode value={qrCodeUrl} size={200} />
+                      <p style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
+                        二维码ID: {record.qrcodeId}
+                      </p>
+                    </div>
+                  ),
+                  // width: 300,
+                  centered: true,
+                  okText: '关闭'
+                });
+              }} style={{ display: 'flex', justifyContent: 'center' }}>
+            <QRCode
+              value={qrCodeUrl}
+              size={50}
+              style={{ cursor: 'pointer' }}
+              
+            />
+          </div>
+        );
+      },
     },
     qrcodeCode: {
       title: '二维码编号',
@@ -81,7 +102,17 @@ const ProductionInfoManagement: React.FC = () => {
       title: '商标',
       dataIndex: 'trademark',
       width: 120,
-      ellipsis: true,
+      render: (text: string) => {
+        if (!text) return '-';
+        return (
+          <ImagePreview
+            src={text}
+            alt="商标"
+            width={40}
+            height={40}
+          />
+        );
+      },
     },
     colour: {
       title: '釉色',
@@ -131,20 +162,20 @@ const ProductionInfoManagement: React.FC = () => {
 
     // 添加其他固定列
     const otherColumns: ProColumns<ProductionInfoItem>[] = [
-      // {
-      //   title: '生产时间范围',
-      //   dataIndex: 'shareProductTimeRange',
-      //   valueType: 'dateTimeRange',
-      //   hideInTable: true,
-      //   search: {
-      //     transform: (value) => {
-      //       return {
-      //         startShareProductTime: value[0],
-      //         endShareProductTime: value[1],
-      //       };
-      //     },
-      //   },
-      // },
+      {
+        title: '生产时间',
+        dataIndex: 'shareProductTimeRange',
+        valueType: 'dateTimeRange',
+        hideInTable: true,
+        search: {
+          transform: (value) => {
+            return {
+              startShareProductTime: value[0],
+              endShareProductTime: value[1],
+            };
+          },
+        },
+      },
       // {
       //   title: '操作人',
       //   dataIndex: 'operateName',
@@ -302,7 +333,7 @@ const ProductionInfoManagement: React.FC = () => {
                     ),
                   },
                   {
-                    title: '二维码ID',
+                    title: '二维码编号',
                     dataIndex: 'qrcodeId',
                   },
                   {

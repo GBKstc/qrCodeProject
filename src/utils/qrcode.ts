@@ -4,7 +4,7 @@
 
 /**
  * 根据二维码ID生成二维码URL
- * @param qrId 二维码ID
+ * @param qrId 二维码编号
  * @returns 完整的二维码URL
  */
 export const generateQRCodeUrl = (qrId: string | number): string => {
@@ -14,7 +14,7 @@ export const generateQRCodeUrl = (qrId: string | number): string => {
 
 /**
  * 验证二维码ID是否有效
- * @param qrId 二维码ID
+ * @param qrId 二维码编号
  * @returns 是否有效
  */
 export const isValidQRCodeId = (qrId: any): boolean => {
@@ -26,7 +26,7 @@ export const isValidQRCodeId = (qrId: any): boolean => {
 
 /**
  * 安全生成二维码URL，会验证ID有效性
- * @param qrId 二维码ID
+ * @param qrId 二维码编号
  * @returns 二维码URL或空字符串
  */
 export const safeGenerateQRCodeUrl = (qrId: any): string => {

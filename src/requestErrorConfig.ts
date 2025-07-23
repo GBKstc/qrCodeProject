@@ -80,7 +80,7 @@ export const errorConfig: RequestConfig = {
         localStorage.removeItem('userInfo');
         // 跳转到登录页面
         history.push('/user/login');
-        message.error('登录已过期，请重新登录');
+        // message.error('登录已过期，请重新登录');
         return;
       }
       

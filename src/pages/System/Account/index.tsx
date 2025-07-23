@@ -349,7 +349,7 @@ const AccountList: React.FC = () => {
           ]}
           name="roleList"
           label="授予权限(角色)"
-          // mode="multiple"
+          mode="multiple"
           options={roleOptions}
           placeholder="请选择角色"
         />

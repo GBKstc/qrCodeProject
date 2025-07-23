@@ -12,9 +12,11 @@ const RedirectToFirstPage: React.FC = () => {
       { path: '/system/account', permission: 'canViewAccount' },
       { path: '/production/process', permission: 'canViewProcess' },
       { path: '/production/equipment', permission: 'canViewEquipment' },
+      { path: '/production/equipment-overview', permission: 'canViewEquipment' },
       { path: '/production/qrcode', permission: 'canViewQRCode' },
       { path: '/production/product', permission: 'canViewProduct' },
       { path: '/production/info', permission: 'canViewProductionInfo' },
+      { path: '/production/infowb', permission: 'canViewProductionInfowb' },
       { path: '/production/display', permission: 'canViewDisplay' },
     ];
 
@@ -27,8 +29,9 @@ const RedirectToFirstPage: React.FC = () => {
       // 跳转到第一个有权限的页面
       history.replace(firstAccessiblePage.path);
     } else {
-      // 如果没有任何权限，跳转到404页面
-      history.replace('/404');
+      // 如果没有任何权限，跳转到欢迎页面而不是404
+      // 避免从404页面点击返回首页后又回到404的循环
+      history.replace('/welcome');
     }
   }, [access]);
 

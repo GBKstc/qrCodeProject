@@ -9,6 +9,7 @@ import {
   ProFormDateTimePicker,
 } from '@ant-design/pro-components';
 import { Button, message, Popconfirm, QRCode, Modal, Table, Switch } from 'antd';
+import { ImagePreview } from '@/components';
 import React, { useRef, useState } from 'react';
 import { getProductionInfoList, ProductionInfoItem } from '@/services/production/productionInfo';
 import { request } from '@umijs/max';
@@ -220,12 +221,34 @@ const DisplayManagement: React.FC = () => {
       dataIndex: 'qrcodeUrl',
       width: 100,
       search: false,
-      render: (_, record) => (
-        <QRCode
-          value={generateQRCodeUrl(record.qrcodeId)}
-          size={50}
-        />
-      ),
+      render: (_, record) => {
+        const qrCodeUrl = generateQRCodeUrl(record.qrcodeId);
+        return (
+          <div onClick={() => {
+                Modal.info({
+                  title: '二维码详情',
+                  content: (
+                    <div style={{paddingTop:"20px",marginLeft:'-22px',display: 'flex', justifyContent: 'center', alignItems: 'center',flexDirection: 'column'}}>
+                      <QRCode value={qrCodeUrl} size={200} />
+                      <p style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
+                        二维码ID: {record.qrcodeId}
+                      </p>
+                    </div>
+                  ),
+                  // width: 300,
+                  centered: true,
+                  okText: '关闭'
+                });
+              }} style={{ display: 'flex', justifyContent: 'center' }}>
+            <QRCode
+              value={qrCodeUrl}
+              size={50}
+              style={{ cursor: 'pointer' }}
+              
+            />
+          </div>
+        );
+      },
     },
     {
       title: '二维码编号',
@@ -249,8 +272,18 @@ const DisplayManagement: React.FC = () => {
       title: '商标',
       dataIndex: 'trademark',
       width: 120,
-      ellipsis: true,
       search: false,
+      render: (text: string) => {
+        if (!text) return '-';
+        return (
+          <ImagePreview
+            src={text}
+            alt="商标"
+            width={40}
+            height={40}
+          />
+        );
+      },
     },
     {
       title: '生产时间',

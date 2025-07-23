@@ -74,7 +74,11 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       const userInfo = localStorage.getItem('userInfo');
       const currentLoginPath = getLoginPath();
       
-      if (!userInfo && location.pathname !== loginPath && location.pathname !== wbLoginPath) {
+      // 允许未登录用户访问welcome页面和登录页面
+      if (!userInfo && 
+          location.pathname !== loginPath && 
+          location.pathname !== wbLoginPath && 
+          location.pathname !== '/welcome') {
         history.push(currentLoginPath);
       }
     },

@@ -27,6 +27,8 @@ const QRCodeManagement: React.FC = () => {
       const response = await getEquipmentList({
         currPage: 1,
         pageSize: 1000, // 获取所有设备
+        type:1 //1喷码机 2PDA
+
       });
       
       if (response.success && response.data?.records) {
@@ -341,7 +343,7 @@ const QRCodeManagement: React.FC = () => {
         onFinish={handleCreate}
         key={createModalOpen ? 'create' : 'create-closed'} // 添加 key 属性强制重新渲染
         initialValues={{
-          url: 'http://175.24.15.119:90/' // 添加默认URL值
+          url: 'http://175.24.15.119:91/product-detail' // 添加默认URL值
         }}
       >
         <ProFormDigit
@@ -366,7 +368,7 @@ const QRCodeManagement: React.FC = () => {
           width="md"
           name="url"
           label="访问URL"
-          placeholder="请输入二维码访问地址，如：https://example.com/product/"
+          placeholder="请输入二维码访问地址"
           extra="二维码扫描后跳转的URL地址"
         />
       </ModalForm>
@@ -422,7 +424,7 @@ const QRCodeManagement: React.FC = () => {
           width="md"
           name="url"
           label="访问URL"
-          placeholder="请输入二维码访问地址，如：https://example.com/product/"
+          placeholder="请输入二维码访问地址"
           extra="二维码扫描后跳转的URL地址"
         />
       </ModalForm>
@@ -437,7 +439,7 @@ const QRCodeManagement: React.FC = () => {
       >
         <div style={{ marginBottom: 16, padding: 12, backgroundColor: '#f6f6f6', borderRadius: 4 }}>
           <p style={{ margin: 0, color: '#666' }}>
-            二维码ID：{currentRecord?.id}<br/>
+            二维码编号：{currentRecord?.id}<br/>
             批次号：{currentRecord?.batchCode}<br/>
             数量：{currentRecord?.num} 个
           </p>

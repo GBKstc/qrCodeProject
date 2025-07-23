@@ -147,13 +147,13 @@ const EquipmentManagement: React.FC = () => {
       width: 150,
       search: false, // 移除设备名称搜索
     },
-    {
-      title: '工序',
-      dataIndex: 'productionProcessesName',
-      ellipsis: true,
-      width: 120,
-      // 支持模糊搜索
-    },
+    // {
+    //   title: '工序',
+    //   dataIndex: 'productionProcessesName',
+    //   ellipsis: true,
+    //   width: 120,
+    //   // 支持模糊搜索
+    // },
   
     {
       title: '设备类型',
@@ -168,7 +168,7 @@ const EquipmentManagement: React.FC = () => {
     {
       title: '关联工序',
       dataIndex: 'productionProcessesName',
-      search: false,
+      // search: false,
       ellipsis: true,
       width: 120,
     },

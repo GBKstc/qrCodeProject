@@ -6,6 +6,7 @@ import {
   ProDescriptions,
 } from '@ant-design/pro-components';
 import { Button, Modal, QRCode, message } from 'antd';
+import { ImagePreview } from '@/components';
 import React, { useRef, useState, useMemo } from 'react';
 import { getProductionInfoList, ProductionInfoItem } from '@/services/production/productionInfo';
 import { generateQRCodeUrl } from '@/utils/qrcode';
@@ -37,18 +38,38 @@ const ProductionInfoManagement: React.FC = () => {
         dataIndex: 'qrcodeUrl',
         width: 100,
         search: false,
-        render: (_, record) => (
-          <QRCode
-            value={generateQRCodeUrl(record.qrcodeId)}
-            size={50}
-            style={{ cursor: 'pointer' }}
-            // onClick={() => handleViewDetail(record)}
-          />
-        ),
+        render: (_, record) => {
+          const qrCodeUrl = generateQRCodeUrl(record.qrcodeId);
+          return (
+            <div onClick={() => {
+                  Modal.info({
+                    title: '二维码详情',
+                    content: (
+                      <div style={{paddingTop:"20px",marginLeft:'-22px',display: 'flex', justifyContent: 'center', alignItems: 'center',flexDirection: 'column'}}>
+                        <QRCode value={qrCodeUrl} size={200} />
+                        <p style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
+                          二维码ID: {record.qrcodeId}
+                        </p>
+                      </div>
+                    ),
+                    // width: 300,
+                    centered: true,
+                    okText: '关闭'
+                  });
+                }} style={{ display: 'flex', justifyContent: 'center' }}>
+              <QRCode
+                value={qrCodeUrl}
+                size={50}
+                style={{ cursor: 'pointer' }}
+                
+              />
+            </div>
+          );
+        },
       },
       {
-        title: '二维码ID',
-        dataIndex: 'qrcodeId',
+        title: '二维码编号',
+        dataIndex: 'qrcodeBatchCode',
         width: 120,
         search: false,
       },
@@ -68,7 +89,17 @@ const ProductionInfoManagement: React.FC = () => {
         title: '商标',
         dataIndex: 'trademark',
         width: 120,
-        ellipsis: true,
+        render: (text: string) => {
+          if (!text) return '-';
+          return (
+            <ImagePreview
+              src={text}
+              alt="商标"
+              width={40}
+              height={40}
+            />
+          );
+        },
       },
       {
         title: '批次',
@@ -76,13 +107,13 @@ const ProductionInfoManagement: React.FC = () => {
         width: 120,
         ellipsis: true,
       },
-      {
-        title: '釉色',
-        dataIndex: 'colour',
-        width: 100,
-        ellipsis: true,
-        search: false,
-      },
+      // {
+      //   title: '釉色',
+      //   dataIndex: 'colour',
+      //   width: 100,
+      //   ellipsis: true,
+      //   search: false,
+      // },
       {
         title: '生产时间',
         dataIndex: 'produceTime',
@@ -91,7 +122,7 @@ const ProductionInfoManagement: React.FC = () => {
         search: false,
       },
       {
-        title: '生产时间范围',
+        title: '生产时间',
         dataIndex: 'produceTimeRange',
         valueType: 'dateTimeRange',
         hideInTable: true,
@@ -104,20 +135,20 @@ const ProductionInfoManagement: React.FC = () => {
           },
         },
       },
-      {
-        title: '展示生产时间',
-        dataIndex: 'shareProductTime',
-        valueType: 'dateTime',
-        width: 160,
-        search: false,
-      },
-      {
-        title: '展示生产时间范围',
-        dataIndex: 'shareProductTimeRange',
-        valueType: 'dateTimeRange',
-        hideInTable: true,
-        search: false,
-      },
+      // {
+      //   title: '展示生产时间',
+      //   dataIndex: 'shareProductTime',
+      //   valueType: 'dateTime',
+      //   width: 160,
+      //   search: false,
+      // },
+      // {
+      //   title: '展示生产时间范围',
+      //   dataIndex: 'shareProductTimeRange',
+      //   valueType: 'dateTimeRange',
+      //   hideInTable: true,
+      //   search: false,
+      // },
       {
         title: '展示批次号',
         dataIndex: 'shareBatchCode',
@@ -238,6 +269,8 @@ const ProductionInfoManagement: React.FC = () => {
               ...params,
               currPage: params.current,
               pageSize: params.pageSize,
+              startProduceTime: params.startProduceTime,
+              endProduceTime: params.endProduceTime,
             });
             
             if (response.success) {
@@ -315,7 +348,7 @@ const ProductionInfoManagement: React.FC = () => {
                     ),
                   },
                   {
-                    title: '二维码ID',
+                    title: '二维码编号',
                     dataIndex: 'qrcodeId',
                   },
                   {
@@ -360,42 +393,42 @@ const ProductionInfoManagement: React.FC = () => {
                     dataIndex: 'shareProductTime',
                     valueType: 'dateTime',
                   },
-                  {
-                    title: '展示批次号',
-                    dataIndex: 'shareBatchCode',
-                  },
-                  {
-                    title: '操作人',
-                    dataIndex: 'operateName',
-                    render: (text) => (
-                      <span style={{ 
-                        padding: '4px 8px', 
-                        background: '#e6f7ff', 
-                        border: '1px solid #91d5ff',
-                        borderRadius: '4px',
-                        color: '#1890ff'
-                      }}>
-                        {text}
-                      </span>
-                    ),
-                  },
-                  {
-                    title: '备注',
-                    dataIndex: 'remark',
-                    span: 3,
-                    render: (text) => (
-                      <div style={{ 
-                        padding: '8px 12px', 
-                        background: '#fff7e6', 
-                        border: '1px solid #ffd591',
-                        borderRadius: '4px',
-                        minHeight: '40px',
-                        color: '#d46b08'
-                      }}>
-                        {text || '暂无备注'}
-                      </div>
-                    ),
-                  },
+                  // {
+                  //   title: '展示批次号',
+                  //   dataIndex: 'shareBatchCode',
+                  // },
+                  // {
+                  //   title: '操作人',
+                  //   dataIndex: 'operateName',
+                  //   render: (text) => (
+                  //     <span style={{ 
+                  //       padding: '4px 8px', 
+                  //       background: '#e6f7ff', 
+                  //       border: '1px solid #91d5ff',
+                  //       borderRadius: '4px',
+                  //       color: '#1890ff'
+                  //     }}>
+                  //       {text}
+                  //     </span>
+                  //   ),
+                  // },
+                  // {
+                  //   title: '备注',
+                  //   dataIndex: 'remark',
+                  //   span: 3,
+                  //   render: (text) => (
+                  //     <div style={{ 
+                  //       padding: '8px 12px', 
+                  //       background: '#fff7e6', 
+                  //       border: '1px solid #ffd591',
+                  //       borderRadius: '4px',
+                  //       minHeight: '40px',
+                  //       color: '#d46b08'
+                  //     }}>
+                  //       {text || '暂无备注'}
+                  //     </div>
+                  //   ),
+                  // },
                   {
                     title: '创建时间',
                     dataIndex: 'createTime',

@@ -62,5 +62,6 @@ export default function access(initialState: any) {
     canViewDisplay: hasPermission('200600'),
     canEditDisplay: hasPermission('200600101'),
     canDeleteDisplay: hasPermission('200600102'),
+    canViewProductionInfowb: hasPermission('200700'),
   };
 }

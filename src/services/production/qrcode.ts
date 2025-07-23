@@ -90,7 +90,7 @@ export async function batchGenerateQRCode(
 /** 导出二维码 GET /api/daciQrcode/export */
 export async function exportQRCode(
   params: {
-    /** 二维码ID */
+    /** 二维码编号 */
     id: number;
     /** 设备ID */
     deviceId: number;

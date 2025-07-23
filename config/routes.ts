@@ -95,7 +95,7 @@ export default [
       {
         path: '/production/infowb',
         name: 'productionInfowb',
-        access: 'canViewProductionInfo',
+        access: 'canViewProductionInfowb',
         component: './Production/ProductionInfoWb',
       },
       {
