@@ -40,10 +40,8 @@ const ProcessManagement: React.FC = () => {
   const columns: ProColumns<ProcessItem>[] = [
     {
       title: '工序序号',
-      dataIndex: 'sequence',
-      // valueType: 'index',
-      // width: 80,
-      // render: (_, record) => record.sequence,
+      dataIndex: 'sort',
+      width: 120,
     },
     {
       title: '工序名称',
@@ -177,6 +175,7 @@ const ProcessManagement: React.FC = () => {
               pageSize: params.pageSize,
               name: params.name,
               description: params.description,
+              sort: params.sort,
             });
             
             console.log('API 响应:', response);
@@ -190,7 +189,7 @@ const ProcessManagement: React.FC = () => {
                 id: item.id,
                 name: item.name,
                 description: item.descript, // 注意：接口返回的是 descript
-                sequence: item.sort, // 注意：接口返回的是 sort
+                sort: item.sort, // 注意：接口返回的是 sort
                 status: 1, // 接口没有返回状态，设置默认值
                 createTime: item.createTime,
                 updateTime: item.updateTime,

@@ -34,7 +34,7 @@ export default function access(initialState: any) {
     canEditRole: hasPermission('100100101'),
     canAddRole: hasPermission('100100102'),
     canDeleteRole: hasPermission('100100103'),
-    canViewPermission: hasPermission('100100100'),
+    canViewPermission: hasPermission('100100'),
     canViewAccount: hasPermission('100200'),
     canEditAccount: hasPermission('100200101'),
     canAddAccount: hasPermission('100200102'),

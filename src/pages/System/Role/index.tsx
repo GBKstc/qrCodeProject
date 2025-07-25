@@ -130,10 +130,7 @@ const RoleManagement: React.FC = () => {
               try {
                 if (record.id) {
                   // 使用编辑接口进行软删除
-                  const result = await updateRole({
-                    id: record.id,
-                    del: 1, // 设置删除标记
-                  });
+                  const result = await disableRole(record.id);
                   if (result.success) {
                     message.success('删除成功');
                     actionRef.current?.reload();

@@ -168,9 +168,16 @@ const EquipmentManagement: React.FC = () => {
     {
       title: '关联工序',
       dataIndex: 'productionProcessesName',
-      // search: false,
       ellipsis: true,
       width: 120,
+      valueType: 'select',
+      fieldProps: {
+        options: processOptions,
+        placeholder: '请选择关联工序',
+      },
+      search: {
+        transform: (value) => ({ productionProcessesId: value }),
+      },
     },
     {
       title: '操作',
@@ -226,7 +233,7 @@ const EquipmentManagement: React.FC = () => {
             const response = await getEquipmentList({
               currPage: params.current || 1,
               pageSize: params.pageSize || 10,
-              productionProcessesName: params.productionProcessesName, // 工序搜索
+              productionProcessesId: params.productionProcessesId, // 工序搜索
               productionLineName: params.productionLineName, // 产线搜索
               type: params.type, // 设备类型搜索
             });

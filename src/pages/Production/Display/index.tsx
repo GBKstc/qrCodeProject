@@ -252,7 +252,7 @@ const DisplayManagement: React.FC = () => {
     },
     {
       title: '二维码编号',
-      dataIndex: 'qrcodeId',
+      dataIndex: 'qrcodeCode',
       width: 120,
       ellipsis: true,
     },
@@ -375,6 +375,7 @@ const DisplayManagement: React.FC = () => {
               currPage: params.current,
               pageSize: params.pageSize,
               qrcodeId: params.qrcodeId,
+              qrcodeCode: params.qrcodeCode,
               size: params.size,
               thumbCode: params.thumbCode,
               trademark: params.trademark,

@@ -130,7 +130,10 @@ const QRCodeManagement: React.FC = () => {
 
   const handleDelete = async (record: any) => {
     try {
-      const response = await deleteQRCode(record.id);
+      const response = await saveOrUpdateQRCode({
+        id: record.id,
+        del: 1,
+      });
       if (response.success) {
         message.success('删除成功');
         actionRef.current?.reload();
@@ -154,6 +157,7 @@ const QRCodeManagement: React.FC = () => {
       title: '编号',
       dataIndex: 'code',
       ellipsis: true,
+      search: false,
       hideInTable: true, // 隐藏编号列
     },
     {
@@ -243,19 +247,19 @@ const QRCodeManagement: React.FC = () => {
         // 在操作列中
         record.status === 1 ? (
         <Tooltip title="该二维码已使用，不允许重复导出" key="export">
-        <span style={{ color: '#ccc', cursor: 'not-allowed' }}>
-        <DownloadOutlined /> 已导出
-        </span>
+          <span style={{ color: '#ccc', cursor: 'not-allowed' }}>
+            <DownloadOutlined /> 已导出
+          </span>
         </Tooltip>
         ) : (
         <a
-        key="export"
-        onClick={() => {
-        setCurrentRecord(record);
-        setExportModalOpen(true);
+          key="export"
+          onClick={() => {
+          setCurrentRecord(record);
+          setExportModalOpen(true);
         }}
         >
-        <DownloadOutlined /> 导出
+         <DownloadOutlined /> 导出
         </a>
         ),
         <Popconfirm

@@ -69,7 +69,7 @@ const ProductionInfoManagement: React.FC = () => {
       },
       {
         title: '二维码编号',
-        dataIndex: 'qrcodeBatchCode',
+        dataIndex: 'qrcodeCode',
         width: 120,
         search: false,
       },
@@ -102,7 +102,7 @@ const ProductionInfoManagement: React.FC = () => {
         },
       },
       {
-        title: '批次',
+        title: '批次编号',
         dataIndex: 'batchCode',
         width: 120,
         ellipsis: true,
@@ -149,33 +149,33 @@ const ProductionInfoManagement: React.FC = () => {
       //   hideInTable: true,
       //   search: false,
       // },
-      {
-        title: '展示批次号',
-        dataIndex: 'shareBatchCode',
-        width: 120,
-        ellipsis: true,
-        search: false,
-      },
-      {
-        title: '操作人',
-        dataIndex: 'operateName',
-        width: 120,
-        ellipsis: true,
-      },
-      {
-        title: '备注',
-        dataIndex: 'remark',
-        width: 150,
-        ellipsis: true,
-        search: false,
-      },
-      {
-        title: '创建时间',
-        dataIndex: 'createTime',
-        valueType: 'dateTime',
-        width: 160,
-        search: false,
-      },
+      // {
+      //   title: '展示批次号',
+      //   dataIndex: 'shareBatchCode',
+      //   width: 120,
+      //   ellipsis: true,
+      //   search: false,
+      // },
+      // {
+      //   title: '操作人',
+      //   dataIndex: 'operateName',
+      //   width: 120,
+      //   ellipsis: true,
+      // },
+      // {
+      //   title: '备注',
+      //   dataIndex: 'remark',
+      //   width: 150,
+      //   ellipsis: true,
+      //   search: false,
+      // },
+      // {
+      //   title: '创建时间',
+      //   dataIndex: 'createTime',
+      //   valueType: 'dateTime',
+      //   width: 160,
+      //   search: false,
+      // },
     ];
 
     // 动态生成工序列
@@ -349,7 +349,7 @@ const ProductionInfoManagement: React.FC = () => {
                   },
                   {
                     title: '二维码编号',
-                    dataIndex: 'qrcodeId',
+                    dataIndex: 'qrcodeCode',
                   },
                   {
                     title: '型号',

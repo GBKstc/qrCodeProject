@@ -31,7 +31,7 @@ const RedirectToFirstPage: React.FC = () => {
     } else {
       // 如果没有任何权限，跳转到欢迎页面而不是404
       // 避免从404页面点击返回首页后又回到404的循环
-      history.replace('/welcome');
+      history.replace('/user/login');
     }
   }, [access]);
 

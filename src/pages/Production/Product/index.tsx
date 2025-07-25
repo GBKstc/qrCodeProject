@@ -184,9 +184,9 @@ const ProductManagement: React.FC = () => {
       message.error('只能上传 JPG/PNG 格式的图片!');
       return false;
     }
-    const isLt2M = file.size / 1024 / 1024 < 2;
+    const isLt2M = file.size / 1024 / 1024 < 10;
     if (!isLt2M) {
-      message.error('图片大小不能超过 2MB!');
+      message.error('图片大小不能超过 10MB!');
       return false;
     }
     return true;

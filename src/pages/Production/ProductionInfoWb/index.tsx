@@ -82,7 +82,7 @@ const ProductionInfoManagement: React.FC = () => {
     },
     qrcodeCode: {
       title: '二维码编号',
-      dataIndex: 'qrcodeId',
+      dataIndex: 'qrcodeCode',
       width: 120,
       search: false,
     },
@@ -334,7 +334,7 @@ const ProductionInfoManagement: React.FC = () => {
                   },
                   {
                     title: '二维码编号',
-                    dataIndex: 'qrcodeId',
+                    dataIndex: 'qrcodeCode',
                   },
                   {
                     title: '型号',
