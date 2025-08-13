@@ -2,14 +2,16 @@
  * @see https://umijs.org/docs/max/access#access
  * */
 export default function access(initialState: any) {
-  // 从 localStorage 获取用户信息进行权限判断
-  const userInfo = localStorage.getItem('userInfo');
-  let currentUser = null;
+  // 优先从 initialState 获取用户信息，如果没有则从 localStorage 获取
+  let currentUser = initialState?.currentUser || initialState?.userInfo;
   
-  try {
-    currentUser = userInfo ? JSON.parse(userInfo) : null;
-  } catch (error) {
-    console.error('解析用户信息失败:', error);
+  if (!currentUser) {
+    const userInfo = localStorage.getItem('userInfo');
+    try {
+      currentUser = userInfo ? JSON.parse(userInfo) : null;
+    } catch (error) {
+      console.error('解析用户信息失败:', error);
+    }
   }
   
   // 获取用户权限列表

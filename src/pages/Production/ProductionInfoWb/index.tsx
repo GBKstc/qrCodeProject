@@ -128,7 +128,7 @@ const ProductionInfoManagement: React.FC = () => {
       search: false,
     },
     batchCode: {
-      title: '批次号',
+      title: '序列号',
       dataIndex: 'shareBatchCode',
       width: 120,
       ellipsis: true,
@@ -176,6 +176,42 @@ const ProductionInfoManagement: React.FC = () => {
           },
         },
       },
+      {
+        title: '工序',
+        dataIndex: 'processName',
+        valueType: 'select',
+        hideInTable: true,
+        valueEnum: allProcesses.reduce((acc, process) => {
+          acc[process] = { text: process };
+          return acc;
+        }, {} as Record<string, { text: string }>),
+        fieldProps: {
+          placeholder: '请选择工序',
+          allowClear: true,
+        },
+      },
+      {
+        title: '工序时间',
+        dataIndex: 'processTimeRange',
+        valueType: 'dateTimeRange',
+        hideInTable: true,
+        dependencies: ['processName'],
+        fieldProps: {
+          placeholder: ['开始时间', '结束时间'],
+        },
+        search: {
+          transform: (value, namePath, allValues) => {
+            if (!allValues.processName || !value) {
+              return {};
+            }
+            return {
+              processName: allValues.processName,
+              startProcessTime: value[0],
+              endProcessTime: value[1],
+            };
+          },
+        },
+      },
       // {
       //   title: '操作人',
       //   dataIndex: 'operateName',
@@ -219,7 +255,42 @@ const ProductionInfoManagement: React.FC = () => {
       ],
     };
 
-    return [...baseColumns, ...dynamicColumns, ...otherColumns];
+    // 动态生成工序列
+    const processColumns: ProColumns<ProductionInfoItem>[] = [];
+    
+    allProcesses.forEach((processName) => {
+      // 扫码时间列
+      processColumns.push({
+        title: `${processName}扫码时间`,
+        dataIndex: `${processName}_scanTime`,
+        valueType: 'dateTime',
+        width: 160,
+        search: false,
+        render: (_, record) => {
+          const processItem = record.produceUserList?.find(
+            item => item.productionProcessesName === processName
+          );
+          return processItem?.updateTime || '-';
+        },
+      });
+      
+      // 操作人员列
+      processColumns.push({
+        title: `${processName}操作人员`,
+        dataIndex: `${processName}_operator`,
+        width: 120,
+        search: false,
+        ellipsis: true,
+        render: (_, record) => {
+          const processItem = record.produceUserList?.find(
+            item => item.productionProcessesName === processName
+          );
+          return processItem?.operateName || '-';
+        },
+      });
+    });
+
+    return [...baseColumns, ...dynamicColumns, ...otherColumns, ...processColumns, actionColumn];
   }, [allProcesses, displayConfig]);
 
   // 从数据中提取所有工序名称
@@ -243,8 +314,9 @@ const ProductionInfoManagement: React.FC = () => {
         rowKey="id"
         search={{
           labelWidth: 120,
+          defaultCollapsed: false, // 搜索项默认展开
         }}
-        // scroll={{ x: 2000 + allProcesses.length * 280 }} // 动态调整滚动宽度
+        scroll={{ x: 2000 + allProcesses.length * 280 }} // 动态调整滚动宽度
         pagination={{
           pageSize: 10,
           // showSizeChanger: true,
@@ -252,11 +324,21 @@ const ProductionInfoManagement: React.FC = () => {
         }}
         request={async (params, sort, filter) => {
           try {
-            const response = await getProductionInfoList({
+            // 处理工序时间筛选参数
+            const requestParams: any = {
               ...params,
               currPage: params.current,
               pageSize: params.pageSize,
-            });
+            };
+            
+            // 如果有工序时间筛选，添加相关参数
+            if (params.processName && params.startProcessTime && params.endProcessTime) {
+              requestParams.processName = params.processName;
+              requestParams.startProcessTime = params.startProcessTime;
+              requestParams.endProcessTime = params.endProcessTime;
+            }
+            
+            const response = await getProductionInfoList(requestParams);
             
             if (response.success) {
               // 提取工序信息并更新状态

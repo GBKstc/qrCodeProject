@@ -121,6 +121,7 @@ declare namespace API {
   // 产品管理相关类型
   type ProductItem = {
     id?: number;
+    name?: string; // 产品名称
     batchCode?: string; // 批次
     colour?: string; // 釉色
     operateId?: number;
@@ -137,6 +138,7 @@ declare namespace API {
 
   type ProductApiItem = {
     id?: number;
+    name?: string; // 产品名称
     batchCode?: string;
     colour?: string;
     operateId?: number;
@@ -227,7 +229,7 @@ declare namespace API {
   // 二维码管理相关类型
   type QRCodeItem = {
     id?: number;
-    batchCode?: string; // 批次号
+    batchCode?: string; // 序列号
     code?: string; // 编号
     deviceId?: number; // 设备id
     num?: number; // 数量
@@ -244,7 +246,7 @@ declare namespace API {
   // 二维码保存参数类型
   type DaciQrcodeSaveParam = {
     id?: number;
-    batchCode?: string; // 批次号
+    batchCode?: string; // 序列号
     num?: number; // 数量
     sort?: number; // 序号
     url?: string; // 链接

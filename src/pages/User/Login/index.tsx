@@ -101,6 +101,13 @@ const Login: React.FC = () => {
           localStorage.setItem('userPermissions', JSON.stringify(data.authList));
         }
         
+        // 将用户信息存储到initialState中
+        await setInitialState((s) => ({
+          ...s,
+          currentUser: data, // 存储完整的用户信息
+          userInfo: data,    // 兼容性字段
+        }));
+        
         const urlParams = new URL(window.location.href).searchParams;
         history.push(urlParams.get('redirect') || '/');
         return;

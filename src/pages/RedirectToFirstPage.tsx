@@ -1,11 +1,31 @@
-import { useEffect } from 'react';
-import { history, useAccess } from '@umijs/max';
+import { useEffect, useState } from 'react';
+import { history, useAccess, useModel } from '@umijs/max';
 import { Spin } from 'antd';
 
 const RedirectToFirstPage: React.FC = () => {
   const access = useAccess();
+  const { initialState } = useModel('@@initialState');
+  const [hasChecked, setHasChecked] = useState(false);
 
   useEffect(() => {
+    // 重置检查状态
+    setHasChecked(false);
+  }, [initialState]);
+
+  useEffect(() => {
+    if (hasChecked) return;
+    
+    console.log('当前权限状态:', access);
+    
+    // 检查用户是否已登录
+    const userInfo = localStorage.getItem('userInfo');
+    
+    if (!userInfo) {
+      // 用户未登录，直接跳转到登录页面
+      history.replace('/user/login');
+      return;
+    }
+
     // 定义所有可能的页面路径和对应的权限检查
     const pageRoutes = [
       { path: '/system/role', permission: 'canViewRole' },
@@ -28,12 +48,10 @@ const RedirectToFirstPage: React.FC = () => {
     if (firstAccessiblePage) {
       // 跳转到第一个有权限的页面
       history.replace(firstAccessiblePage.path);
-    } else {
-      // 如果没有任何权限，跳转到欢迎页面而不是404
-      // 避免从404页面点击返回首页后又回到404的循环
-      history.replace('/user/login');
     }
-  }, [access]);
+    
+    setHasChecked(true);
+  }, [access, hasChecked]);
 
   // 显示加载状态
   return (
@@ -43,7 +61,7 @@ const RedirectToFirstPage: React.FC = () => {
       alignItems: 'center', 
       height: '100vh' 
     }}>
-      <Spin size="large" />
+      {/* <Spin size="large" /> */}
     </div>
   );
 };

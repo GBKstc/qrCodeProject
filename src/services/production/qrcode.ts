@@ -3,7 +3,7 @@ import { request } from '@umijs/max';
 /** 二维码管理分页查询 GET /api/daciQrcode/pageList */
 export async function getQRCodeList(
   params: {
-    /** 批次号 */
+    /** 序列号 */
     batchCode?: string;
     /** 编号 */
     code?: string;

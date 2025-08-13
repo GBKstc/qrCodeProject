@@ -15,12 +15,15 @@ export interface ProductionInfoParams {
   qrcodeId?: number;            // 二维码id
   qrcodeUrl?: string;           // 二维码
   remark?: string;              // 备注
-  shareBatchCode?: string;      // 展示批次号
+  shareBatchCode?: string;      // 展示序列号
   size?: string;                // 型号
   startProduceTime?: string;    // 开始生产时间
   startShareProductTime?: string; // 开始展示生产时间
   thumbCode?: string;           // 图号
   trademark?: string;           // 商标
+  processName?: string;         // 工序名称
+  startProcessTime?: string;    // 工序开始时间
+  endProcessTime?: string;      // 工序结束时间
 }
 
 // 生产信息项
@@ -74,12 +77,19 @@ export interface ProductionInfoListResult {
 
 // 获取生产信息列表
 export async function getProductionInfoList(params: ProductionInfoParams) {
+  
+  const isWb = localStorage.getItem('loginType') === 'wb';
+  console.log('isWb', isWb);
+  let url = '/api/daciProduce/pageList';
+  if(isWb){
+    url = '/api/daciProduce/externalPageList';
+  }
   return request<{
     success: boolean;
     message: string;
     code: string;
     data: ProductionInfoListResult;
-  }>('/api/daciProduce/pageList', {
+  }>(url, {
     method: 'GET',
     params,
   });

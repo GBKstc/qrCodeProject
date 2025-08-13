@@ -52,7 +52,7 @@ const QRCodeManagement: React.FC = () => {
   const handleCreate = async (values: any) => {
     try {
       const response = await saveOrUpdateQRCode({
-        // batchCode: values.batchCode, // 移除批次号
+        // batchCode: values.batchCode, // 移除序列号
         num: values.num,
         // sort: values.sort, // 移除排序
         url: values.url,
@@ -147,7 +147,7 @@ const QRCodeManagement: React.FC = () => {
 
   const columns: ProColumns<any>[] = [
     {
-      title: '二维码批次号',
+      title: '二维码序列号',
       dataIndex: 'batchCode',
       copyable: true,
       ellipsis: true,
@@ -389,12 +389,12 @@ const QRCodeManagement: React.FC = () => {
       >
         <ProFormText
           rules={[
-            { required: true, message: '批次号为必填项' },
+            { required: true, message: '序列号为必填项' },
           ]}
           width="md"
           name="batchCode"
-          label="批次号"
-          placeholder="请输入二维码批次号"
+          label="序列号"
+          placeholder="请输入二维码序列号"
         />
         <ProFormDigit
           rules={[
@@ -444,7 +444,7 @@ const QRCodeManagement: React.FC = () => {
         <div style={{ marginBottom: 16, padding: 12, backgroundColor: '#f6f6f6', borderRadius: 4 }}>
           <p style={{ margin: 0, color: '#666' }}>
             二维码编号：{currentRecord?.id}<br/>
-            批次号：{currentRecord?.batchCode}<br/>
+            序列号：{currentRecord?.batchCode}<br/>
             数量：{currentRecord?.num} 个
           </p>
         </div>

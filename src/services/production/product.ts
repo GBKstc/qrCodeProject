@@ -7,6 +7,8 @@ export async function getProductList(
     currPage?: number;
     /** 数量,默认10 */
     pageSize?: number;
+    /** 产品名称 */
+    name?: string;
     /** 批次 */
     batchCode?: string;
     /** 釉色 */

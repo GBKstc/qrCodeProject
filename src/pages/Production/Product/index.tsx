@@ -14,6 +14,7 @@ import { getProductList, saveOrUpdateProduct, removeProduct } from '@/services/p
 
 type ProductItem = {
   id: number;
+  name: string; // 产品名称
   batchCode: string;
   thumbCode: string;
   size: string;
@@ -50,6 +51,7 @@ const ProductManagement: React.FC = () => {
       // const currentUser = getCurrentUser(); // 需要实现获取当前用户的方法
       
       const requestData = {
+        name: values.name || '', // 产品名称
         batchCode: values.batchCode || '',
         colour: values.colour || '',
         // id: 0, // 新增时不需要传id
@@ -127,6 +129,7 @@ const ProductManagement: React.FC = () => {
       
       const requestData = {
         id: currentRecord.id,
+        name: values.name || '', // 产品名称
         batchCode: values.batchCode || '',
         colour: values.colour || '',
         operateId: currentRecord.operateId || 0,
@@ -243,11 +246,17 @@ const ProductManagement: React.FC = () => {
       search: false,
     },
     {
-      title: '批次',
-      dataIndex: 'batchCode',
+      title: '产品名称',
+      dataIndex: 'name',
       ellipsis: true,
-      // width: 120,
+      // width: 150,
     },
+    // {
+    //   title: '批次',
+    //   dataIndex: 'batchCode',
+    //   ellipsis: true,
+    //   // width: 120,
+    // },
     {
       title: '图号',
       dataIndex: 'thumbCode',
@@ -260,27 +269,27 @@ const ProductManagement: React.FC = () => {
       ellipsis: true,
       // width: 120,
     },
-    {
-      title: '商标',
-      dataIndex: 'trademark',
-      ellipsis: true,
-      // width: 100,
-      render: (_, record) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {record.trademark && (
-            <Image
-              width={30}
-              height={30}
-              src={record.trademark}
-              style={{ objectFit: 'cover', borderRadius: 4 }}
-              preview={{
-                mask: '预览',
-              }}
-            />
-          )}
-        </div>
-      ),
-    },
+    // {
+    //   title: '商标',
+    //   dataIndex: 'trademark',
+    //   ellipsis: true,
+    //   // width: 100,
+    //   render: (_, record) => (
+    //     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+    //       {record.trademark && (
+    //         <Image
+    //           width={30}
+    //           height={30}
+    //           src={record.trademark}
+    //           style={{ objectFit: 'cover', borderRadius: 4 }}
+    //           preview={{
+    //             mask: '预览',
+    //           }}
+    //         />
+    //       )}
+    //     </div>
+    //   ),
+    // },
     {
       title: '釉色',
       dataIndex: 'colour',
@@ -384,6 +393,7 @@ const ProductManagement: React.FC = () => {
             const response = await getProductList({
               currPage: params.current || 1,
               pageSize: params.pageSize || 10,
+              name: params.name,
               batchCode: params.batchCode,
               thumbCode: params.thumbCode,
               size: params.size,
@@ -434,6 +444,12 @@ const ProductManagement: React.FC = () => {
         labelCol={{ span: 6 }}
         wrapperCol={{ span: 18 }}
       >
+        <ProFormText
+          rules={[{ required: true, message: '产品名称为必填项' }]}
+          name="name"
+          label="产品名称"
+          placeholder="请输入产品名称"
+        />
         <ProFormText
           rules={[{ required: true, message: '型号为必填项' }]}
           name="size"
@@ -537,6 +553,7 @@ const ProductManagement: React.FC = () => {
         // 使用 key 强制重新渲染表单
         key={currentRecord?.id || 'new'}
         initialValues={{
+          name: currentRecord?.name || '',
           size: currentRecord?.size || '',
           thumbCode: currentRecord?.thumbCode || '',
           batchCode: currentRecord?.batchCode || '',
@@ -559,6 +576,12 @@ const ProductManagement: React.FC = () => {
         labelCol={{ span: 6 }}
         wrapperCol={{ span: 18 }}
       >
+        <ProFormText
+          rules={[{ required: true, message: '产品名称为必填项' }]}
+          name="name"
+          label="产品名称"
+          placeholder="请输入产品名称"
+        />
         <ProFormText
           rules={[{ required: true, message: '型号为必填项' }]}
           name="size"

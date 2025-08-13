@@ -10,7 +10,7 @@ import {
 } from '@ant-design/pro-components';
 import { Button, message, Popconfirm, QRCode, Modal, Table, Switch } from 'antd';
 import { ImagePreview } from '@/components';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { getProductionInfoList, ProductionInfoItem } from '@/services/production/productionInfo';
 import { request } from '@umijs/max';
 import { generateQRCodeUrl } from '@/utils/qrcode';
@@ -34,6 +34,9 @@ const DisplayManagement: React.FC = () => {
   const [currentRow, setCurrentRow] = useState<ProductionInfoItem>();
   const [showModuleList, setShowModuleList] = useState<ShowModuleItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [selectedRows, setSelectedRows] = useState<ProductionInfoItem[]>([]);
+  const [allProcesses, setAllProcesses] = useState<string[]>([]);
   const actionRef = useRef<ActionType>();
 
   // 获取展示模块列表
@@ -154,10 +157,58 @@ const DisplayManagement: React.FC = () => {
     }
   };
 
+  // 批量删除功能
+  const handleBatchDelete = async () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning('请选择要删除的记录');
+      return;
+    }
+
+    try {
+      // 批量删除请求
+      const deletePromises = selectedRows.map(record => 
+        request('/api/daciProduce/saveOrUpdate', {
+          method: 'POST',
+          data: {
+            id: record.id,
+            del: 1,
+          },
+        })
+      );
+
+      const responses = await Promise.all(deletePromises);
+      const failedCount = responses.filter(response => !response.success).length;
+      
+      if (failedCount === 0) {
+        message.success(`成功删除 ${selectedRowKeys.length} 条记录`);
+        setSelectedRowKeys([]);
+        setSelectedRows([]);
+        actionRef.current?.reload();
+      } else {
+        message.error(`删除失败 ${failedCount} 条记录，请重试`);
+      }
+    } catch (error) {
+      message.error('批量删除失败，请重试');
+    }
+  };
+
   // 编辑按钮点击
   const handleEdit = (record: ProductionInfoItem) => {
     setCurrentRow(record);
     handleUpdateModalOpen(true);
+  };
+
+  // 从数据中提取所有工序名称
+  const extractProcesses = (data: ProductionInfoItem[]) => {
+    const processSet = new Set<string>();
+    data.forEach(item => {
+      item.produceUserList?.forEach(process => {
+        if (process.productionProcessesName) {
+          processSet.add(process.productionProcessesName);
+        }
+      });
+    });
+    return Array.from(processSet).sort();
   };
 
   // 展示模块表格列定义
@@ -207,7 +258,9 @@ const DisplayManagement: React.FC = () => {
     // },
   ];
 
-  const columns: ProColumns<ProductionInfoItem>[] = [
+  // 动态生成列配置
+  const columns: ProColumns<ProductionInfoItem>[] = useMemo(() => {
+    const baseColumns: ProColumns<ProductionInfoItem>[] = [
     {
       title: '序号',
       dataIndex: 'index',
@@ -255,18 +308,27 @@ const DisplayManagement: React.FC = () => {
       dataIndex: 'qrcodeCode',
       width: 120,
       ellipsis: true,
+      filters: true,
+      onFilter: true,
+      valueType: 'text',
     },
     {
       title: '型号',
       dataIndex: 'size',
       width: 120,
       ellipsis: true,
+      filters: true,
+      onFilter: true,
+      valueType: 'text',
     },
     {
       title: '图号',
       dataIndex: 'thumbCode',
       width: 120,
       ellipsis: true,
+      filters: true,
+      onFilter: true,
+      valueType: 'text',
     },
     {
       title: '商标',
@@ -291,6 +353,9 @@ const DisplayManagement: React.FC = () => {
       valueType: 'dateTime',
       width: 160,
       search: false,
+      filters: true,
+      onFilter: true,
+      valueType: 'dateTime',
     },
     {
       title: '展示生产时间',
@@ -298,20 +363,66 @@ const DisplayManagement: React.FC = () => {
       valueType: 'dateTime',
       width: 160,
       search: false,
+      filters: true,
+      onFilter: true,
+      valueType: 'dateTime',
     },
     {
       title: '批次编号',
       dataIndex: 'batchCode',
       width: 120,
       ellipsis: true,
+      filters: true,
+      onFilter: true,
+      valueType: 'text',
     },
     {
       title: '展示批次编号',
       dataIndex: 'shareBatchCode',
       width: 120,
       ellipsis: true,
-    },
-    {
+      filters: true,
+      onFilter: true,
+      valueType: 'text',
+    }];
+
+    // 动态生成工序列
+    const processColumns: ProColumns<ProductionInfoItem>[] = [];
+    
+    allProcesses.forEach((processName) => {
+      // 扫码时间列
+      processColumns.push({
+        title: `${processName}扫码时间`,
+        dataIndex: `${processName}_scanTime`,
+        valueType: 'dateTime',
+        width: 160,
+        search: false,
+        render: (_, record) => {
+          const processItem = record.produceUserList?.find(
+            item => item.productionProcessesName === processName
+          );
+          return processItem?.updateTime || '-';
+        },
+      });
+      
+      // 操作人员列
+      processColumns.push({
+        title: `${processName}操作人员`,
+        dataIndex: `${processName}_operator`,
+        width: 120,
+        search: false,
+        ellipsis: true,
+        render: (_, record) => {
+          const processItem = record.produceUserList?.find(
+            item => item.productionProcessesName === processName
+          );
+          return processItem?.operateName || '-';
+        },
+      });
+    });
+
+    // 操作列
+    const actionColumn: ProColumns<ProductionInfoItem> = {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
@@ -342,8 +453,10 @@ const DisplayManagement: React.FC = () => {
           </Button>
         </Popconfirm>,
       ],
-    },
-  ];
+    };
+
+    return [...baseColumns, ...processColumns, actionColumn];
+  }, [allProcesses]);
 
   return (
     <PageContainer>
@@ -354,7 +467,7 @@ const DisplayManagement: React.FC = () => {
         search={{
           labelWidth: 120,
         }}
-        scroll={{ x: 1400 }}
+        scroll={{ x: 1400 + allProcesses.length * 280 }} // 动态调整滚动宽度
         pagination={{
           pageSize: 10,
           showSizeChanger: true,
@@ -368,7 +481,24 @@ const DisplayManagement: React.FC = () => {
           >
             展示设定
           </Button>,
-        ]}
+          selectedRowKeys.length > 0 && (
+            <Popconfirm
+              key="batchDelete"
+              title={`确定删除选中的 ${selectedRowKeys.length} 条记录吗？`}
+              onConfirm={handleBatchDelete}
+              okText="确定"
+              cancelText="取消"
+            >
+              <Button
+                type="primary"
+                danger
+                icon={<DeleteOutlined />}
+              >
+                批量删除 ({selectedRowKeys.length})
+              </Button>
+            </Popconfirm>
+          ),
+        ].filter(Boolean)}
         request={async (params) => {
           try {
             const response = await getProductionInfoList({
@@ -384,6 +514,10 @@ const DisplayManagement: React.FC = () => {
             });
             
             if (response.success) {
+              // 提取工序信息并更新状态
+              const processes = extractProcesses(response.data?.records || []);
+              setAllProcesses(processes);
+              
               return {
                 data: response.data?.records || [],
                 success: true,
@@ -407,6 +541,42 @@ const DisplayManagement: React.FC = () => {
           }
         }}
         columns={columns}
+        rowSelection={{
+          selectedRowKeys,
+          onChange: (newSelectedRowKeys: React.Key[], newSelectedRows: ProductionInfoItem[]) => {
+            setSelectedRowKeys(newSelectedRowKeys);
+            setSelectedRows(newSelectedRows);
+          },
+          onSelect: (record: ProductionInfoItem, selected: boolean, newSelectedRows: ProductionInfoItem[]) => {
+            console.log('选择行:', record, selected, newSelectedRows);
+          },
+          onSelectAll: (selected: boolean, newSelectedRows: ProductionInfoItem[], changeRows: ProductionInfoItem[]) => {
+            console.log('全选:', selected, newSelectedRows, changeRows);
+          },
+        }}
+        tableAlertRender={({ selectedRowKeys, selectedRows, onCleanSelected }) => (
+          <span>
+            已选择 <a style={{ fontWeight: 600 }}>{selectedRowKeys.length}</a> 项
+            <a style={{ marginLeft: 24 }} onClick={onCleanSelected}>
+              取消选择
+            </a>
+          </span>
+        )}
+        tableAlertOptionRender={({ selectedRowKeys, selectedRows, onCleanSelected }) => (
+          <span>
+            <Popconfirm
+              title={`确定删除选中的 ${selectedRowKeys.length} 条记录吗？`}
+              onConfirm={() => {
+                handleBatchDelete();
+                onCleanSelected();
+              }}
+              okText="确定"
+              cancelText="取消"
+            >
+              <a>批量删除</a>
+            </Popconfirm>
+          </span>
+        )}
       />
       
       {/* 展示设定Modal */}

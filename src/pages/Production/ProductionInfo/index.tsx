@@ -18,6 +18,8 @@ const ProductionInfoManagement: React.FC = () => {
   const actionRef = useRef<ActionType>();
 
   const handleViewDetail = (record: ProductionInfoItem) => {
+    // console.log(record)
+    record.qrcodeUrl = generateQRCodeUrl(record.qrcodeId);
     setCurrentRow(record);
     setDetailModalOpen(true);
   };
@@ -33,40 +35,40 @@ const ProductionInfoManagement: React.FC = () => {
         fixed: 'left',
         search: false,
       },
-      {
-        title: '二维码',
-        dataIndex: 'qrcodeUrl',
-        width: 100,
-        search: false,
-        render: (_, record) => {
-          const qrCodeUrl = generateQRCodeUrl(record.qrcodeId);
-          return (
-            <div onClick={() => {
-                  Modal.info({
-                    title: '二维码详情',
-                    content: (
-                      <div style={{paddingTop:"20px",marginLeft:'-22px',display: 'flex', justifyContent: 'center', alignItems: 'center',flexDirection: 'column'}}>
-                        <QRCode value={qrCodeUrl} size={200} />
-                        <p style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
-                          二维码ID: {record.qrcodeId}
-                        </p>
-                      </div>
-                    ),
-                    // width: 300,
-                    centered: true,
-                    okText: '关闭'
-                  });
-                }} style={{ display: 'flex', justifyContent: 'center' }}>
-              <QRCode
-                value={qrCodeUrl}
-                size={50}
-                style={{ cursor: 'pointer' }}
+      // {
+      //   title: '二维码',
+      //   dataIndex: 'qrcodeUrl',
+      //   width: 100,
+      //   search: false,
+      //   render: (_, record) => {
+      //     const qrCodeUrl = generateQRCodeUrl(record.qrcodeId);
+      //     return (
+      //       <div onClick={() => {
+      //             Modal.info({
+      //               title: '二维码详情',
+      //               content: (
+      //                 <div style={{paddingTop:"20px",marginLeft:'-22px',display: 'flex', justifyContent: 'center', alignItems: 'center',flexDirection: 'column'}}>
+      //                   <QRCode value={qrCodeUrl} size={200} />
+      //                   <p style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
+      //                     二维码ID: {record.qrcodeId}
+      //                   </p>
+      //                 </div>
+      //               ),
+      //               // width: 300,
+      //               centered: true,
+      //               okText: '关闭'
+      //             });
+      //           }} style={{ display: 'flex', justifyContent: 'center' }}>
+      //         <QRCode
+      //           value={qrCodeUrl}
+      //           size={50}
+      //           style={{ cursor: 'pointer' }}
                 
-              />
-            </div>
-          );
-        },
-      },
+      //         />
+      //       </div>
+      //     );
+      //   },
+      // },
       {
         title: '二维码编号',
         dataIndex: 'qrcodeCode',
@@ -85,22 +87,22 @@ const ProductionInfoManagement: React.FC = () => {
         width: 120,
         ellipsis: true,
       },
-      {
-        title: '商标',
-        dataIndex: 'trademark',
-        width: 120,
-        render: (text: string) => {
-          if (!text) return '-';
-          return (
-            <ImagePreview
-              src={text}
-              alt="商标"
-              width={40}
-              height={40}
-            />
-          );
-        },
-      },
+      // {
+      //   title: '商标',
+      //   dataIndex: 'trademark',
+      //   width: 120,
+      //   render: (text: string) => {
+      //     if (!text) return '-';
+      //     return (
+      //       <ImagePreview
+      //         src={text}
+      //         alt="商标"
+      //         width={40}
+      //         height={40}
+      //       />
+      //     );
+      //   },
+      // },
       {
         title: '批次编号',
         dataIndex: 'batchCode',
@@ -135,6 +137,42 @@ const ProductionInfoManagement: React.FC = () => {
           },
         },
       },
+      {
+        title: '工序',
+        dataIndex: 'processName',
+        valueType: 'select',
+        hideInTable: true,
+        valueEnum: allProcesses.reduce((acc, process) => {
+          acc[process] = { text: process };
+          return acc;
+        }, {} as Record<string, { text: string }>),
+        fieldProps: {
+          placeholder: '请选择工序',
+          allowClear: true,
+        },
+      },
+      {
+        title: '工序时间',
+        dataIndex: 'processTimeRange',
+        valueType: 'dateTimeRange',
+        hideInTable: true,
+        dependencies: ['processName'],
+        fieldProps: {
+          placeholder: ['开始时间', '结束时间'],
+        },
+        search: {
+          transform: (value, namePath, allValues) => {
+            if (!allValues.processName || !value) {
+              return {};
+            }
+            return {
+              processName: allValues.processName,
+              startProcessTime: value[0],
+              endProcessTime: value[1],
+            };
+          },
+        },
+      },
       // {
       //   title: '展示生产时间',
       //   dataIndex: 'shareProductTime',
@@ -150,7 +188,7 @@ const ProductionInfoManagement: React.FC = () => {
       //   search: false,
       // },
       // {
-      //   title: '展示批次号',
+      //   title: '展示序列号',
       //   dataIndex: 'shareBatchCode',
       //   width: 120,
       //   ellipsis: true,
@@ -256,6 +294,7 @@ const ProductionInfoManagement: React.FC = () => {
         rowKey="id"
         search={{
           labelWidth: 120,
+          defaultCollapsed: false, // 搜索项默认展开
         }}
         scroll={{ x: 2000 + allProcesses.length * 280 }} // 动态调整滚动宽度
         pagination={{
@@ -265,13 +304,23 @@ const ProductionInfoManagement: React.FC = () => {
         }}
         request={async (params, sort, filter) => {
           try {
-            const response = await getProductionInfoList({
+            // 处理工序时间筛选参数
+            const requestParams: any = {
               ...params,
               currPage: params.current,
               pageSize: params.pageSize,
               startProduceTime: params.startProduceTime,
               endProduceTime: params.endProduceTime,
-            });
+            };
+            
+            // 如果有工序时间筛选，添加相关参数
+            if (params.processName && params.startProcessTime && params.endProcessTime) {
+              requestParams.processName = params.processName;
+              requestParams.startProcessTime = params.startProcessTime;
+              requestParams.endProcessTime = params.endProcessTime;
+            }
+            
+            const response = await getProductionInfoList(requestParams);
             
             if (response.success) {
               // 提取工序信息并更新状态
@@ -394,7 +443,7 @@ const ProductionInfoManagement: React.FC = () => {
                     valueType: 'dateTime',
                   },
                   // {
-                  //   title: '展示批次号',
+                  //   title: '展示序列号',
                   //   dataIndex: 'shareBatchCode',
                   // },
                   // {

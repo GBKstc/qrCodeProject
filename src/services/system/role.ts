@@ -53,15 +53,16 @@ export async function updateRole(body: API.RoleSaveParam, options?: { [key: stri
 
 /** 删除角色 DELETE /api/dcPlatRole/{id} */
 export async function removeRole(id: number, options?: { [key: string]: any }) {
-  return request<API.SystemCommonResponse>(`/api/dcPlatRole/${id}`, {
-    method: 'DELETE',
+  return request<API.SystemCommonResponse>('/api/dcPlatRole/disable', {
+    method: 'GET',
+    params: { id },
     ...(options || {}),
   });
 }
 
 /** 获取角色详情 GET /api/dcPlatRole/{id} */
 export async function getRoleDetail(id: number, options?: { [key: string]: any }) {
-  return request<API.RoleItem>(`/api/dcPlatRole/${id}`, {
+  return request<API.RoleItem>(`/api/dcPlatRole/disable`, {
     method: 'GET',
     ...(options || {}),
   });
@@ -89,7 +90,7 @@ export async function getAllRoles(options?: { [key: string]: any }) {
 
 /** 禁用/启用角色 GET /api/dcPlatRole/disable */
 export async function disableRole(id: any, options?: { [key: string]: any }) {
-  return request<API.SystemCommonResponse>('/api/dcPlatRole/disable', {
+  return request<API.SystemCommonResponse>('/api/dcPlatRole/changeStatus', {
     method: 'GET',
     params: { id },
     ...(options || {}),
