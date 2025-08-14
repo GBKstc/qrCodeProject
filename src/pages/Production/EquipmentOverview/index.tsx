@@ -122,7 +122,7 @@ const EquipmentOverview: React.FC = () => {
         columns={columns}
         pagination={{
           defaultPageSize: 10,
-          showSizeChanger: true,
+         
         }}
       />
     </PageContainer>

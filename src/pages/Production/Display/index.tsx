@@ -470,8 +470,7 @@ const DisplayManagement: React.FC = () => {
         scroll={{ x: 1400 + allProcesses.length * 280 }} // 动态调整滚动宽度
         pagination={{
           pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
+          
         }}
         toolBarRender={() => [
           <Button

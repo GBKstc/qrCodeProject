@@ -299,8 +299,7 @@ const ProductionInfoManagement: React.FC = () => {
         scroll={{ x: 2000 + allProcesses.length * 280 }} // 动态调整滚动宽度
         pagination={{
           pageSize: 10,
-          // showSizeChanger: true,
-          // showQuickJumper: true,
+         
         }}
         request={async (params, sort, filter) => {
           try {
