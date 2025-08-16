@@ -12,7 +12,6 @@
 export default {
   // 开发环境代理配置
   dev: {
-    // localhost:8000/api/** -> http://175.24.15.119:10019/api/**
     '/api/': {
       // 要代理的地址
       target: 'http://175.24.15.119:10019',
@@ -29,7 +28,6 @@ export default {
    * @doc https://github.com/chimurai/http-proxy-middleware
    */
   test: {
-    // localhost:8000/api/** -> http://175.24.15.119:10019/api/**
     '/api/': {
       target: 'http://175.24.15.119:10019',
       changeOrigin: true,

@@ -17,7 +17,7 @@ const Settings: ProLayoutProps & {
   colorWeak: false,
   title: '大连二维码',
   pwa: true,
-  logo: '/logo.png',
+  logo: '/image.png',
 
   iconfontUrl: '',
   token: {

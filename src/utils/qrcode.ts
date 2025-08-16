@@ -8,7 +8,8 @@
  * @returns 完整的二维码URL
  */
 export const generateQRCodeUrl = (qrId: string | number): string => {
-  const baseUrl = 'http://175.24.15.119:91/qrcode';
+  const apiHost = process.env.REACT_APP_API_HOST || '175.24.15.119';
+  const baseUrl = `http://${apiHost}:91/qrcode`;
   return `${baseUrl}?qrid=${qrId}`;
 };
 

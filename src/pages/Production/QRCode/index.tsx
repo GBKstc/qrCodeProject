@@ -347,7 +347,7 @@ const QRCodeManagement: React.FC = () => {
         onFinish={handleCreate}
         key={createModalOpen ? 'create' : 'create-closed'} // 添加 key 属性强制重新渲染
         initialValues={{
-          url: 'http://175.24.15.119:91/product-detail' // 添加默认URL值
+          url: `http://${process.env.REACT_APP_API_HOST || '175.24.15.119'}:91/product-detail` // 添加默认URL值
         }}
       >
         <ProFormDigit
