@@ -7,10 +7,13 @@
  * @param qrId 二维码编号
  * @returns 完整的二维码URL
  */
-export const generateQRCodeUrl = (qrId: string | number): string => {
-  const apiHost = process.env.REACT_APP_API_HOST || '175.24.15.119';
+export const generateQRCodeUrl = (qrId: string | number, qrcode: string | number): string => {
+  console.log(qrId, qrcode)
+
+  // 使用 define 配置的全局变量
+  const apiHost = REACT_APP_API_HOST || '175.24.15.119';
   const baseUrl = `http://${apiHost}:91/qrcode`;
-  return `${baseUrl}?qrid=${qrId}`;
+  return `${baseUrl}?qrcodeId=${qrId}&qrcode=${qrcode}`;
 };
 
 /**
@@ -25,14 +28,3 @@ export const isValidQRCodeId = (qrId: any): boolean => {
   return true;
 };
 
-/**
- * 安全生成二维码URL，会验证ID有效性
- * @param qrId 二维码编号
- * @returns 二维码URL或空字符串
- */
-export const safeGenerateQRCodeUrl = (qrId: any): string => {
-  if (!isValidQRCodeId(qrId)) {
-    return '';
-  }
-  return generateQRCodeUrl(qrId);
-};

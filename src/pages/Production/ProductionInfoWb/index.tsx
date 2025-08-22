@@ -52,7 +52,7 @@ const ProductionInfoManagement: React.FC = () => {
       width: 100,
       search: false,
       render: (_, record) => {
-        const qrCodeUrl = generateQRCodeUrl(record.qrcodeId);
+        const qrCodeUrl = generateQRCodeUrl(record.qrcodeId, record.qrcodeCode);
         return (
           <div onClick={() => {
                 Modal.info({
@@ -176,42 +176,42 @@ const ProductionInfoManagement: React.FC = () => {
           },
         },
       },
-      {
-        title: '工序',
-        dataIndex: 'processName',
-        valueType: 'select',
-        hideInTable: true,
-        valueEnum: allProcesses.reduce((acc, process) => {
-          acc[process] = { text: process };
-          return acc;
-        }, {} as Record<string, { text: string }>),
-        fieldProps: {
-          placeholder: '请选择工序',
-          allowClear: true,
-        },
-      },
-      {
-        title: '工序时间',
-        dataIndex: 'processTimeRange',
-        valueType: 'dateTimeRange',
-        hideInTable: true,
-        dependencies: ['processName'],
-        fieldProps: {
-          placeholder: ['开始时间', '结束时间'],
-        },
-        search: {
-          transform: (value, namePath, allValues) => {
-            if (!allValues.processName || !value) {
-              return {};
-            }
-            return {
-              processName: allValues.processName,
-              startProcessTime: value[0],
-              endProcessTime: value[1],
-            };
-          },
-        },
-      },
+      // {
+      //   title: '工序',
+      //   dataIndex: 'processName',
+      //   valueType: 'select',
+      //   hideInTable: true,
+      //   valueEnum: allProcesses.reduce((acc, process) => {
+      //     acc[process] = { text: process };
+      //     return acc;
+      //   }, {} as Record<string, { text: string }>),
+      //   fieldProps: {
+      //     placeholder: '请选择工序',
+      //     allowClear: true,
+      //   },
+      // },
+      // {
+      //   title: '工序时间',
+      //   dataIndex: 'processTimeRange',
+      //   valueType: 'dateTimeRange',
+      //   hideInTable: true,
+      //   dependencies: ['processName'],
+      //   fieldProps: {
+      //     placeholder: ['开始时间', '结束时间'],
+      //   },
+      //   search: {
+      //     transform: (value, namePath, allValues) => {
+      //       if (!allValues.processName || !value) {
+      //         return {};
+      //       }
+      //       return {
+      //         processName: allValues.processName,
+      //         startProcessTime: value[0],
+      //         endProcessTime: value[1],
+      //       };
+      //     },
+      //   },
+      // },
       // {
       //   title: '操作人',
       //   dataIndex: 'operateName',

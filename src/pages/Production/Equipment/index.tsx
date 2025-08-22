@@ -66,7 +66,8 @@ const EquipmentManagement: React.FC = () => {
       const response = await saveOrUpdateEquipment({
         code: values.code,
         name: values.name,
-        type: values.type,
+        // type: values.type,
+        type:1,
         productionProcessesId: values.productionProcessesId,
       });
       
@@ -91,7 +92,8 @@ const EquipmentManagement: React.FC = () => {
         id: currentRecord?.id,
         code: values.code,
         name: values.name,
-        type: values.type,
+        // type: values.type,
+        type:1,
         productionProcessesId: values.productionProcessesId,
       });
       
@@ -155,16 +157,16 @@ const EquipmentManagement: React.FC = () => {
     //   // 支持模糊搜索
     // },
   
-    {
-      title: '设备类型',
-      dataIndex: 'type',
-      valueEnum: {
-        1: { text: '喷码机' },
-        2: { text: 'PDA' },
-      },
-      width: 100,
-      // 下拉选择搜索
-    },
+    // {
+    //   title: '设备类型',
+    //   dataIndex: 'type',
+    //   valueEnum: {
+    //     1: { text: '喷码机' },
+    //     2: { text: 'PDA' },
+    //   },
+    //   width: 100,
+    //   // 下拉选择搜索
+    // },
     {
       title: '关联工序',
       dataIndex: 'productionProcessesName',
@@ -295,14 +297,14 @@ const EquipmentManagement: React.FC = () => {
           rules={[{ required: true, message: '请选择关联工序' }]}
           placeholder="请选择关联工序"
         />
-        <ProFormSelect
+        {/* <ProFormSelect
           name="type"
           label="设备类型"
           width="md"
           options={equipmentTypeOptions}
           rules={[{ required: true, message: '请选择设备类型' }]}
           placeholder="请选择设备类型"
-        />
+        /> */}
       </ModalForm>
 
       {/* 编辑设备表单 */}
@@ -337,14 +339,14 @@ const EquipmentManagement: React.FC = () => {
           rules={[{ required: true, message: '请选择关联工序' }]}
           placeholder="请选择关联工序"
         />
-        <ProFormSelect
+        {/* <ProFormSelect
           name="type"
           label="设备类型"
           width="md"
           options={equipmentTypeOptions}
           rules={[{ required: true, message: '请选择设备类型' }]}
           placeholder="请选择设备类型"
-        />
+        /> */}
       </ModalForm>
     </PageContainer>
   );

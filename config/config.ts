@@ -60,6 +60,13 @@ export default defineConfig({
    * @description 一个不错的热更新组件，更新时可以保留 state
    */
   fastRefresh: true,
+  /**
+   * @name 定义全局变量
+   * @description 定义全局变量，会在编译时被替换
+   */
+  define: {
+    REACT_APP_API_HOST: process.env.REACT_APP_API_HOST,
+  },
   //============== 以下都是max的插件配置 ===============
   /**
    * @name 数据流插件

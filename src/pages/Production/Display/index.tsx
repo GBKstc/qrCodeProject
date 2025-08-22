@@ -275,7 +275,8 @@ const DisplayManagement: React.FC = () => {
       width: 100,
       search: false,
       render: (_, record) => {
-        const qrCodeUrl = generateQRCodeUrl(record.qrcodeId);
+        const qrCodeUrl = generateQRCodeUrl(record.qrcodeId, record.qrcodeCode);
+
         return (
           <div onClick={() => {
                 Modal.info({
@@ -384,7 +385,44 @@ const DisplayManagement: React.FC = () => {
       filters: true,
       onFilter: true,
       valueType: 'text',
-    }];
+    },
+    // {
+    //   title: '工序',
+    //   dataIndex: 'processName',
+    //   valueType: 'select',
+    //   hideInTable: true,
+    //   valueEnum: allProcesses.reduce((acc, process) => {
+    //     acc[process] = { text: process };
+    //     return acc;
+    //   }, {} as Record<string, { text: string }>),
+    //   fieldProps: {
+    //     placeholder: '请选择工序',
+    //     allowClear: true,
+    //   },
+    // },
+    // {
+    //   title: '工序时间',
+    //   dataIndex: 'processTimeRange',
+    //   valueType: 'dateTimeRange',
+    //   hideInTable: true,
+    //   dependencies: ['processName'],
+    //   fieldProps: {
+    //     placeholder: ['开始时间', '结束时间'],
+    //   },
+    //   search: {
+    //     transform: (value, namePath, allValues) => {
+    //       if (!allValues.processName || !value) {
+    //         return {};
+    //       }
+    //       return {
+    //         processName: allValues.processName,
+    //         startProcessTime: value[0],
+    //         endProcessTime: value[1],
+    //       };
+    //     },
+    //   },
+    // }
+  ];
 
     // 动态生成工序列
     const processColumns: ProColumns<ProductionInfoItem>[] = [];
@@ -466,6 +504,7 @@ const DisplayManagement: React.FC = () => {
         rowKey="id"
         search={{
           labelWidth: 120,
+          defaultCollapsed: false,
         }}
         scroll={{ x: 1400 + allProcesses.length * 280 }} // 动态调整滚动宽度
         pagination={{
@@ -500,7 +539,8 @@ const DisplayManagement: React.FC = () => {
         ].filter(Boolean)}
         request={async (params) => {
           try {
-            const response = await getProductionInfoList({
+            // 处理工序时间筛选参数
+            const requestParams: any = {
               currPage: params.current,
               pageSize: params.pageSize,
               qrcodeId: params.qrcodeId,
@@ -510,7 +550,16 @@ const DisplayManagement: React.FC = () => {
               trademark: params.trademark,
               batchCode: params.batchCode,
               shareBatchCode: params.shareBatchCode,
-            });
+            };
+            
+            // 如果有工序时间筛选参数，添加到请求中
+            if (params.processName && params.startProcessTime && params.endProcessTime) {
+              requestParams.processName = params.processName;
+              requestParams.startProcessTime = params.startProcessTime;
+              requestParams.endProcessTime = params.endProcessTime;
+            }
+            
+            const response = await getProductionInfoList(requestParams);
             
             if (response.success) {
               // 提取工序信息并更新状态

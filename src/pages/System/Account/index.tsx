@@ -169,7 +169,7 @@ const AccountList: React.FC = () => {
       <ProTable<API.AccountItem, API.AccountPageParams>
         headerTitle={intl.formatMessage({
           id: 'pages.searchTable.title',
-          defaultMessage: '查询表格',
+          defaultMessage: '账号管理',
         })}
         actionRef={actionRef}
         rowKey="id"

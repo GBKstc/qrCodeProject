@@ -19,7 +19,7 @@ const ProductionInfoManagement: React.FC = () => {
 
   const handleViewDetail = (record: ProductionInfoItem) => {
     // console.log(record)
-    record.qrcodeUrl = generateQRCodeUrl(record.qrcodeId);
+    record.qrcodeUrl = generateQRCodeUrl(record.qrcodeId, record.qrcodeCode);
     setCurrentRow(record);
     setDetailModalOpen(true);
   };
@@ -137,42 +137,42 @@ const ProductionInfoManagement: React.FC = () => {
           },
         },
       },
-      {
-        title: '工序',
-        dataIndex: 'processName',
-        valueType: 'select',
-        hideInTable: true,
-        valueEnum: allProcesses.reduce((acc, process) => {
-          acc[process] = { text: process };
-          return acc;
-        }, {} as Record<string, { text: string }>),
-        fieldProps: {
-          placeholder: '请选择工序',
-          allowClear: true,
-        },
-      },
-      {
-        title: '工序时间',
-        dataIndex: 'processTimeRange',
-        valueType: 'dateTimeRange',
-        hideInTable: true,
-        dependencies: ['processName'],
-        fieldProps: {
-          placeholder: ['开始时间', '结束时间'],
-        },
-        search: {
-          transform: (value, namePath, allValues) => {
-            if (!allValues.processName || !value) {
-              return {};
-            }
-            return {
-              processName: allValues.processName,
-              startProcessTime: value[0],
-              endProcessTime: value[1],
-            };
-          },
-        },
-      },
+      // {
+      //   title: '工序',
+      //   dataIndex: 'processName',
+      //   valueType: 'select',
+      //   hideInTable: true,
+      //   valueEnum: allProcesses.reduce((acc, process) => {
+      //     acc[process] = { text: process };
+      //     return acc;
+      //   }, {} as Record<string, { text: string }>),
+      //   fieldProps: {
+      //     placeholder: '请选择工序',
+      //     allowClear: true,
+      //   },
+      // },
+      // {
+      //   title: '工序时间',
+      //   dataIndex: 'processTimeRange',
+      //   valueType: 'dateTimeRange',
+      //   hideInTable: true,
+      //   dependencies: ['processName'],
+      //   fieldProps: {
+      //     placeholder: ['开始时间', '结束时间'],
+      //   },
+      //   search: {
+      //     transform: (value, namePath, allValues) => {
+      //       if (!allValues.processName || !value) {
+      //         return {};
+      //       }
+      //       return {
+      //         processName: allValues.processName,
+      //         startProcessTime: value[0],
+      //         endProcessTime: value[1],
+      //       };
+      //     },
+      //   },
+      // },
       // {
       //   title: '展示生产时间',
       //   dataIndex: 'shareProductTime',
@@ -407,10 +407,10 @@ const ProductionInfoManagement: React.FC = () => {
                     title: '图号',
                     dataIndex: 'thumbCode',
                   },
-                  {
-                    title: '商标',
-                    dataIndex: 'trademark',
-                  },
+                  // {
+                  //   title: '商标',
+                  //   dataIndex: 'trademark',
+                  // },
                   {
                     title: '批次',
                     dataIndex: 'batchCode',
